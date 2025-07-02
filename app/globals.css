@@ -1,8 +1,9 @@
 @import "tailwindcss";
 
 :root {
-  --background: #ffffff;
-  --foreground: #171717;
+  --foreground-rgb: 0, 0, 0;
+  --background-start-rgb: 214, 219, 220;
+  --background-end-rgb: 255, 255, 255;
 }
 
 @theme inline {
@@ -14,13 +15,1688 @@
 
 @media (prefers-color-scheme: dark) {
   :root {
-    --background: #0a0a0a;
-    --foreground: #ededed;
+    --foreground-rgb: 255, 255, 255;
+    --background-start-rgb: 41, 37, 36;
+    --background-end-rgb: 0, 0, 0;
   }
 }
 
 body {
-  background: var(--background);
-  color: var(--foreground);
+  color: rgb(var(--foreground-rgb));
+  background: linear-gradient(
+      to bottom,
+      transparent,
+      rgb(var(--background-end-rgb))
+    )
+    rgb(var(--background-start-rgb));
   font-family: Arial, Helvetica, sans-serif;
+}
+
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+/* Custom animations */
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+@keyframes slideInRight {
+  from {
+    transform: translateX(100%);
+  }
+  to {
+    transform: translateX(0);
+  }
+}
+
+@keyframes slideInUp {
+  from {
+    transform: translateY(20px);
+    opacity: 0;
+  }
+  to {
+    transform: translateY(0);
+    opacity: 1;
+  }
+}
+
+@keyframes scaleIn {
+  from {
+    transform: scale(0.8);
+    opacity: 0;
+  }
+  to {
+    transform: scale(1);
+    opacity: 1;
+  }
+}
+
+@keyframes slideDown {
+  from {
+    transform: translateY(-10px);
+    opacity: 0;
+  }
+  to {
+    transform: translateY(0);
+    opacity: 1;
+  }
+}
+
+@keyframes pulse {
+  0%, 100% {
+    opacity: 1;
+  }
+  50% {
+    opacity: .5;
+  }
+}
+
+@keyframes bounce {
+  0%, 100% {
+    transform: translateY(-25%);
+    animation-timing-function: cubic-bezier(0.8,0,1,1);
+  }
+  50% {
+    transform: none;
+    animation-timing-function: cubic-bezier(0,0,0.2,1);
+  }
+}
+
+.animate-fadeIn {
+  animation: fadeIn 0.3s ease-out;
+}
+
+.animate-slideInRight {
+  animation: slideInRight 0.3s ease-out;
+}
+
+.animate-slideInUp {
+  animation: slideInUp 0.4s ease-out;
+}
+
+.animate-scaleIn {
+  animation: scaleIn 0.3s ease-out;
+}
+
+.animate-slideDown {
+  animation: slideDown 0.3s ease-out;
+}
+
+.animate-pulse {
+  animation: pulse 2s cubic-bezier(0.4, 0, 0.6, 1) infinite;
+}
+
+.animate-bounce {
+  animation: bounce 1s infinite;
+}
+
+/* Smooth transitions for all interactive elements */
+* {
+  transition: all 0.2s ease;
+}
+
+/* Custom scrollbar for cart items */
+.cart-scroll {
+  overflow-y: auto;
+  scrollbar-width: thin;
+  scrollbar-color: #d1d5db #f3f4f6;
+}
+
+.cart-scroll::-webkit-scrollbar {
+  width: 6px;
+}
+
+.cart-scroll::-webkit-scrollbar-track {
+  background: #f3f4f6;
+  border-radius: 3px;
+}
+
+.cart-scroll::-webkit-scrollbar-thumb {
+  background: #d1d5db;
+  border-radius: 3px;
+}
+
+.cart-scroll::-webkit-scrollbar-thumb:hover {
+  background: #9ca3af;
+}
+
+/* Dark mode scrollbar */
+.dark .cart-scroll {
+  scrollbar-color: #4b5563 #374151;
+}
+
+.dark .cart-scroll::-webkit-scrollbar-track {
+  background: #374151;
+}
+
+.dark .cart-scroll::-webkit-scrollbar-thumb {
+  background: #4b5563;
+}
+
+.dark .cart-scroll::-webkit-scrollbar-thumb:hover {
+  background: #6b7280;
+}
+
+/* Hover effects for buttons */
+.btn-hover {
+  transition: all 0.2s ease;
+}
+
+.btn-hover:hover {
+  transform: translateY(-1px);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+}
+
+/* Glass effect for modal backgrounds */
+.glass-bg {
+  backdrop-filter: blur(8px);
+  background: rgba(255, 255, 255, 0.95);
+}
+
+/* Card hover animations */
+.card-hover {
+  transition: all 0.3s cubic-bezier(0.25, 0.8, 0.25, 1);
+}
+
+.card-hover:hover {
+  transform: translateY(-4px);
+  box-shadow: 0 8px 25px rgba(0, 0, 0, 0.15);
+}
+
+/* Loading spinner */
+@keyframes spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+.animate-spin {
+  animation: spin 1s linear infinite;
+}
+
+/* Table status animations */
+.table-pulse {
+  animation: pulse 2s infinite;
+}
+
+/* Menu item hover effect */
+.menu-item-hover {
+  transition: all 0.3s ease;
+  transform: scale(1);
+}
+
+.menu-item-hover:hover {
+  transform: scale(1.02);
+  box-shadow: 0 10px 25px rgba(0, 0, 0, 0.1);
+}
+
+/* Dark mode overrides */
+.dark {
+  color-scheme: dark;
+}
+
+.dark body {
+  @apply bg-gray-900 text-gray-100;
+}
+
+.dark .bg-white {
+  @apply bg-gray-800;
+}
+
+.dark .bg-gray-50 {
+  @apply bg-gray-900;
+}
+
+.dark .bg-gray-100 {
+  @apply bg-gray-800;
+}
+
+.dark .bg-gray-200 {
+  @apply bg-gray-700;
+}
+
+.dark .text-gray-900 {
+  @apply text-gray-100;
+}
+
+.dark .text-gray-800 {
+  @apply text-gray-200;
+}
+
+.dark .text-gray-700 {
+  @apply text-gray-300;
+}
+
+.dark .text-gray-600 {
+  @apply text-gray-400;
+}
+
+.dark .text-gray-500 {
+  @apply text-gray-500;
+}
+
+.dark .border-gray-200 {
+  @apply border-gray-700;
+}
+
+.dark .border-gray-300 {
+  @apply border-gray-600;
+}
+
+.dark .hover\:bg-gray-100:hover {
+  @apply bg-gray-700;
+}
+
+.dark .hover\:bg-gray-50:hover {
+  @apply bg-gray-800;
+}
+
+/* Animations */
+@keyframes fadeIn {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
+@keyframes slideInRight {
+  from { 
+    opacity: 0; 
+    transform: translateX(20px); 
+  }
+  to { 
+    opacity: 1; 
+    transform: translateX(0); 
+  }
+}
+
+@keyframes slideInLeft {
+  from { 
+    opacity: 0; 
+    transform: translateX(-20px); 
+  }
+  to { 
+    opacity: 1; 
+    transform: translateX(0); 
+  }
+}
+
+@keyframes slideInUp {
+  from { 
+    opacity: 0; 
+    transform: translateY(20px); 
+  }
+  to { 
+    opacity: 1; 
+    transform: translateY(0); 
+  }
+}
+
+@keyframes slideInDown {
+  from { 
+    opacity: 0; 
+    transform: translateY(-20px); 
+  }
+  to { 
+    opacity: 1; 
+    transform: translateY(0); 
+  }
+}
+
+@keyframes scaleIn {
+  from { 
+    opacity: 0; 
+    transform: scale(0.95); 
+  }
+  to { 
+    opacity: 1; 
+    transform: scale(1); 
+  }
+}
+
+@keyframes bounce {
+  0%, 20%, 53%, 80%, 100% {
+    transform: translateY(0);
+  }
+  40%, 43% {
+    transform: translateY(-30px);
+  }
+  70% {
+    transform: translateY(-15px);
+  }
+  90% {
+    transform: translateY(-4px);
+  }
+}
+
+@keyframes pulse {
+  0%, 100% {
+    opacity: 1;
+  }
+  50% {
+    opacity: 0.5;
+  }
+}
+
+@keyframes wiggle {
+  0%, 7% {
+    transform: rotateZ(0);
+  }
+  15% {
+    transform: rotateZ(-15deg);
+  }
+  20% {
+    transform: rotateZ(10deg);
+  }
+  25% {
+    transform: rotateZ(-10deg);
+  }
+  30% {
+    transform: rotateZ(6deg);
+  }
+  35% {
+    transform: rotateZ(-4deg);
+  }
+  40%, 100% {
+    transform: rotateZ(0);
+  }
+}
+
+@keyframes glow {
+  0%, 100% {
+    box-shadow: 0 0 5px rgba(251, 191, 36, 0.5);
+  }
+  50% {
+    box-shadow: 0 0 20px rgba(251, 191, 36, 0.8);
+  }
+}
+
+/* Animation classes */
+.animate-fadeIn {
+  animation: fadeIn 0.3s ease-out;
+}
+
+.animate-slideInRight {
+  animation: slideInRight 0.3s ease-out;
+}
+
+.animate-slideInLeft {
+  animation: slideInLeft 0.3s ease-out;
+}
+
+.animate-slideInUp {
+  animation: slideInUp 0.3s ease-out;
+}
+
+.animate-slideInDown {
+  animation: slideInDown 0.3s ease-out;
+}
+
+.animate-scaleIn {
+  animation: scaleIn 0.2s ease-out;
+}
+
+.animate-bounce {
+  animation: bounce 1s infinite;
+}
+
+.animate-pulse {
+  animation: pulse 2s cubic-bezier(0.4, 0, 0.6, 1) infinite;
+}
+
+.animate-wiggle {
+  animation: wiggle 1s ease-in-out;
+}
+
+.animate-glow {
+  animation: glow 2s ease-in-out infinite;
+}
+
+/* Button hover effects */
+.btn-hover-scale {
+  transition: transform 0.2s ease-in-out;
+}
+
+.btn-hover-scale:hover {
+  transform: scale(1.05);
+}
+
+.btn-hover-lift {
+  transition: all 0.2s ease-in-out;
+}
+
+.btn-hover-lift:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 8px 25px rgba(0, 0, 0, 0.15);
+}
+
+/* Custom gradient backgrounds */
+.gradient-amber {
+  background: linear-gradient(135deg, #f59e0b, #d97706);
+}
+
+.gradient-green {
+  background: linear-gradient(135deg, #10b981, #059669);
+}
+
+.gradient-blue {
+  background: linear-gradient(135deg, #3b82f6, #2563eb);
+}
+
+.gradient-red {
+  background: linear-gradient(135deg, #ef4444, #dc2626);
+}
+
+/* Table status indicators */
+.table-empty {
+  @apply bg-white border-2 border-gray-200 hover:border-gray-300;
+}
+
+.table-occupied {
+  @apply bg-blue-50 border-2 border-blue-300 hover:border-blue-400;
+}
+
+.table-held {
+  @apply bg-red-50 border-2 border-red-300 hover:border-red-400;
+}
+
+.dark .table-empty {
+  @apply bg-gray-800 border-gray-600 hover:border-gray-500;
+}
+
+.dark .table-occupied {
+  @apply bg-blue-900 border-blue-600 hover:border-blue-500;
+}
+
+.dark .table-held {
+  @apply bg-red-900 border-red-600 hover:border-red-500;
+}
+
+/* Responsive utilities */
+@media (max-width: 768px) {
+  .mobile-grid {
+    grid-template-columns: repeat(2, 1fr);
+  }
+}
+
+@media (max-width: 640px) {
+  .mobile-single {
+    grid-template-columns: 1fr;
+  }
+}
+
+/* Print styles */
+@media print {
+  .no-print {
+    display: none !important;
+  }
+  
+  .print-only {
+    display: block !important;
+  }
+  
+  body {
+    background: white !important;
+    color: black !important;
+  }
+  
+  .bg-gray-50,
+  .bg-gray-100,
+  .bg-blue-50,
+  .bg-green-50,
+  .bg-amber-50 {
+    background: white !important;
+  }
+}
+
+/* Scrollbar styling */
+::-webkit-scrollbar {
+  width: 8px;
+  height: 8px;
+}
+
+::-webkit-scrollbar-track {
+  @apply bg-gray-100;
+}
+
+::-webkit-scrollbar-thumb {
+  @apply bg-gray-300 rounded-lg;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  @apply bg-gray-400;
+}
+
+.dark ::-webkit-scrollbar-track {
+  @apply bg-gray-800;
+}
+
+.dark ::-webkit-scrollbar-thumb {
+  @apply bg-gray-600;
+}
+
+.dark ::-webkit-scrollbar-thumb:hover {
+  @apply bg-gray-500;
+}
+
+/* Focus styles */
+.focus-ring {
+  @apply focus:outline-none focus:ring-2 focus:ring-amber-500 focus:ring-offset-2;
+}
+
+.dark .focus-ring {
+  @apply focus:ring-offset-gray-800;
+}
+
+/* Glass morphism effect */
+.glass {
+  backdrop-filter: blur(10px);
+  background: rgba(255, 255, 255, 0.1);
+  border: 1px solid rgba(255, 255, 255, 0.2);
+}
+
+.dark .glass {
+  background: rgba(0, 0, 0, 0.1);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+/* Custom shadows */
+.shadow-soft {
+  box-shadow: 0 2px 15px -3px rgba(0, 0, 0, 0.07), 
+              0 10px 20px -2px rgba(0, 0, 0, 0.04);
+}
+
+.shadow-strong {
+  box-shadow: 0 10px 25px -3px rgba(0, 0, 0, 0.1), 
+              0 4px 6px -2px rgba(0, 0, 0, 0.05);
+}
+
+.dark .shadow-soft {
+  box-shadow: 0 2px 15px -3px rgba(0, 0, 0, 0.3), 
+              0 10px 20px -2px rgba(0, 0, 0, 0.2);
+}
+
+.dark .shadow-strong {
+  box-shadow: 0 10px 25px -3px rgba(0, 0, 0, 0.4), 
+              0 4px 6px -2px rgba(0, 0, 0, 0.3);
+}
+
+/* Transition utilities */
+.transition-all-smooth {
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.transition-fast {
+  transition: all 0.15s ease-in-out;
+}
+
+.transition-slow {
+  transition: all 0.5s ease-in-out;
+}
+
+/* Loading states */
+.loading-skeleton {
+  background: linear-gradient(90deg, #f0f0f0 25%, #e0e0e0 50%, #f0f0f0 75%);
+  background-size: 200% 100%;
+  animation: loading 1.5s infinite;
+}
+
+@keyframes loading {
+  0% {
+    background-position: 200% 0;
+  }
+  100% {
+    background-position: -200% 0;
+  }
+}
+
+.dark .loading-skeleton {
+  background: linear-gradient(90deg, #374151 25%, #4b5563 50%, #374151 75%);
+  background-size: 200% 100%;
+}
+
+/* Status indicators */
+.status-dot {
+  @apply w-2 h-2 rounded-full;
+}
+
+.status-active {
+  @apply bg-green-400;
+  box-shadow: 0 0 8px rgba(34, 197, 94, 0.6);
+}
+
+.status-inactive {
+  @apply bg-gray-400;
+}
+
+.status-warning {
+  @apply bg-yellow-400;
+  box-shadow: 0 0 8px rgba(251, 191, 36, 0.6);
+}
+
+.status-error {
+  @apply bg-red-400;
+  box-shadow: 0 0 8px rgba(239, 68, 68, 0.6);
+}
+
+/* Enhanced animations */
+@keyframes slideInRight {
+  from {
+    opacity: 0;
+    transform: translateX(20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateX(0);
+  }
+}
+
+@keyframes slideInUp {
+  from {
+    opacity: 0;
+    transform: translateY(20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+@keyframes scaleIn {
+  from {
+    opacity: 0;
+    transform: scale(0.95);
+  }
+  to {
+    opacity: 1;
+    transform: scale(1);
+  }
+}
+
+.animate-slideInRight {
+  animation: slideInRight 0.3s ease-out forwards;
+}
+
+.animate-slideInUp {
+  animation: slideInUp 0.3s ease-out forwards;
+}
+
+.animate-fadeIn {
+  animation: fadeIn 0.3s ease-out forwards;
+}
+
+.animate-scaleIn {
+  animation: scaleIn 0.2s ease-out forwards;
+}
+
+/* Better focus states */
+.focus-ring:focus {
+  outline: none;
+  box-shadow: 0 0 0 3px rgba(251, 191, 36, 0.3);
+  border-color: #f59e0b;
+}
+
+/* Better button hover states */
+.btn-primary {
+  transition: all 0.2s ease-in-out;
+}
+
+.btn-primary:hover {
+  transform: translateY(-1px);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+}
+
+/* Loading states */
+.loading-spinner {
+  animation: spin 1s linear infinite;
+}
+
+@keyframes spin {
+  from {
+    transform: rotate(0deg);
+  }
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+/* Better mobile responsiveness */
+@media (max-width: 768px) {
+  .cart-scroll {
+    max-height: calc(100vh - 250px) !important;
+    padding: 1rem;
+  }
+  
+  /* Improve mobile cart item visibility */
+  .cart-scroll .space-y-4 > * + * {
+    margin-top: 0.75rem;
+  }
+  
+  /* Better mobile text sizing */
+  .menu-item-container h3 {
+    font-size: 1rem !important;
+    line-height: 1.25rem !important;
+  }
+  
+  /* Mobile-specific scrolling */
+  .cart-scroll {
+    touch-action: pan-y;
+    overscroll-behavior-y: contain;
+  }
+}
+
+/* Print styles for receipts */
+@media print {
+  body * {
+    visibility: hidden;
+  }
+  
+  .print-area,
+  .print-area * {
+    visibility: visible;
+  }
+  
+  .print-area {
+    position: absolute;
+    left: 0;
+    top: 0;
+    width: 100%;
+  }
+  
+  @page {
+    margin: 1cm;
+    size: A4;
+  }
+}
+
+/* Better table styles */
+.table-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(120px, 1fr));
+  gap: 1rem;
+}
+
+@media (min-width: 768px) {
+  .table-grid {
+    grid-template-columns: repeat(5, 1fr);
+  }
+}
+
+@media (min-width: 1024px) {
+  .table-grid {
+    grid-template-columns: repeat(5, 1fr);
+  }
+}
+
+/* Enhanced glass morphism effects */
+.glass {
+  backdrop-filter: blur(10px);
+  background: rgba(255, 255, 255, 0.1);
+  border: 1px solid rgba(255, 255, 255, 0.2);
+}
+
+.dark .glass {
+  background: rgba(0, 0, 0, 0.1);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+/* Better input field styles */
+.input-field {
+  transition: all 0.2s ease-in-out;
+}
+
+.input-field:focus {
+  transform: scale(1.02);
+  box-shadow: 0 0 0 3px rgba(251, 191, 36, 0.1);
+}
+
+/* Status indicators */
+.status-indicator {
+  position: relative;
+  overflow: hidden;
+}
+
+.status-indicator::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: -100%;
+  width: 100%;
+  height: 100%;
+  background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.2), transparent);
+  transition: left 0.5s;
+}
+
+.status-indicator:hover::before {
+  left: 100%;
+}
+
+/* Better modal animations */
+.modal-enter {
+  animation: modalEnter 0.3s ease-out forwards;
+}
+
+@keyframes modalEnter {
+  from {
+    opacity: 0;
+    transform: scale(0.9) translateY(-10px);
+  }
+  to {
+    opacity: 1;
+    transform: scale(1) translateY(0);
+  }
+}
+
+/* Improved typography */
+.text-balance {
+  text-wrap: balance;
+}
+
+/* Better spacing utilities */
+.space-y-relaxed > * + * {
+  margin-top: 1.5rem;
+}
+
+.space-x-relaxed > * + * {
+  margin-left: 1.5rem;
+}
+
+/* Enhanced color visibility fixes */
+
+/* Light mode text improvements */
+.light .text-gray-900 {
+  color: #111827 !important;
+}
+
+.light .text-gray-800 {
+  color: #1f2937 !important;
+}
+
+.light .text-gray-700 {
+  color: #374151 !important;
+}
+
+.light .text-gray-600 {
+  color: #4b5563 !important;
+}
+
+.light .text-gray-500 {
+  color: #6b7280 !important;
+}
+
+/* Dark mode text improvements */
+.dark .text-gray-100 {
+  color: #f9fafb !important;
+}
+
+.dark .text-gray-200 {
+  color: #e5e7eb !important;
+}
+
+.dark .text-gray-300 {
+  color: #d1d5db !important;
+}
+
+.dark .text-gray-400 {
+  color: #9ca3af !important;
+}
+
+.dark .text-gray-500 {
+  color: #6b7280 !important;
+}
+
+/* Button text visibility */
+.btn-text-contrast {
+  color: #111827 !important;
+}
+
+.dark .btn-text-contrast {
+  color: #f9fafb !important;
+}
+
+/* Input field text visibility */
+input, textarea, select {
+  color: #111827 !important;
+}
+
+.dark input, 
+.dark textarea, 
+.dark select {
+  color: #f9fafb !important;
+  background-color: #374151 !important;
+}
+
+/* Table text visibility */
+table td, table th {
+  color: #111827 !important;
+}
+
+.dark table td, 
+.dark table th {
+  color: #f9fafb !important;
+}
+
+/* Card text visibility */
+.card-text {
+  color: #111827 !important;
+}
+
+.dark .card-text {
+  color: #f9fafb !important;
+}
+
+/* Menu item text */
+.menu-item-title {
+  color: #111827 !important;
+  font-weight: 600;
+}
+
+.dark .menu-item-title {
+  color: #f9fafb !important;
+}
+
+.menu-item-price {
+  color: #059669 !important;
+  font-weight: 700;
+}
+
+.dark .menu-item-price {
+  color: #34d399 !important;
+}
+
+/* Order panel text */
+.order-text {
+  color: #111827 !important;
+}
+
+.dark .order-text {
+  color: #f9fafb !important;
+}
+
+/* Status text visibility */
+.status-available {
+  color: #059669 !important;
+  font-weight: 600;
+}
+
+.dark .status-available {
+  color: #34d399 !important;
+}
+
+.status-unavailable {
+  color: #dc2626 !important;
+  font-weight: 600;
+}
+
+.dark .status-unavailable {
+  color: #f87171 !important;
+}
+
+/* Improve link visibility */
+a {
+  color: #2563eb !important;
+}
+
+.dark a {
+  color: #60a5fa !important;
+}
+
+/* Badge text visibility */
+.badge-text {
+  font-weight: 600 !important;
+}
+
+/* Ensure placeholder text is visible */
+::placeholder {
+  color: #6b7280 !important;
+  opacity: 1;
+}
+
+.dark ::placeholder {
+  color: #9ca3af !important;
+}
+
+/* Modal and overlay text */
+.modal-text {
+  color: #111827 !important;
+}
+
+.dark .modal-text {
+  color: #f9fafb !important;
+}
+
+/* Navigation text */
+.nav-text {
+  color: #374151 !important;
+}
+
+.dark .nav-text {
+  color: #d1d5db !important;
+}
+
+/* Fix button text in different states */
+button {
+  font-weight: 500 !important;
+}
+
+.bg-white button {
+  color: #111827 !important;
+}
+
+.bg-gray-50 button {
+  color: #111827 !important;
+}
+
+.dark .bg-gray-800 button {
+  color: #f9fafb !important;
+}
+
+.dark .bg-gray-700 button {
+  color: #f9fafb !important;
+}
+
+/* Specific component fixes */
+.table-status-text {
+  font-weight: 600 !important;
+  text-shadow: 0 1px 2px rgba(0, 0, 0, 0.1);
+}
+
+.dark .table-status-text {
+  text-shadow: 0 1px 2px rgba(255, 255, 255, 0.1);
+}
+
+/* Price display improvements */
+.price-display {
+  color: #059669 !important;
+  font-weight: 700 !important;
+  font-size: 1.1em;
+}
+
+.dark .price-display {
+  color: #34d399 !important;
+}
+
+/* Admin panel specific fixes */
+.admin-text {
+  color: #111827 !important;
+}
+
+.dark .admin-text {
+  color: #f9fafb !important;
+}
+
+/* Report text visibility */
+.report-text {
+  color: #111827 !important;
+}
+
+.dark .report-text {
+  color: #f9fafb !important;
+}
+
+/* Enhanced cart scrolling */
+.cart-scroll-container, .mobile-cart-scroll, .enhanced-cart-scroll {
+  scrollbar-width: thin;
+  scrollbar-color: #6b7280 #374151;
+  overflow-y: auto !important;
+  overflow-x: hidden;
+  overscroll-behavior: contain;
+  scroll-behavior: smooth;
+  will-change: scroll-position;
+  position: relative;
+  -webkit-overflow-scrolling: touch;
+  min-height: 0 !important;
+  height: 100%;
+  max-height: 100%;
+}
+
+/* Enhanced cart scroll with better performance */
+.enhanced-cart-scroll {
+  contain: layout style paint;
+  transform: translateZ(0);
+  scroll-padding-bottom: 20px;
+  padding-bottom: 0 !important;
+}
+
+/* Ensure last item in cart has bottom margin */
+.enhanced-cart-scroll > div > div:last-child {
+  margin-bottom: 8px !important;
+}
+
+.cart-scroll-container::-webkit-scrollbar, 
+.mobile-cart-scroll::-webkit-scrollbar,
+.enhanced-cart-scroll::-webkit-scrollbar {
+  width: 8px;
+}
+
+.cart-scroll-container::-webkit-scrollbar-track, 
+.mobile-cart-scroll::-webkit-scrollbar-track,
+.enhanced-cart-scroll::-webkit-scrollbar-track {
+  background: #374151;
+  border-radius: 6px;
+  margin: 4px 0;
+}
+
+.cart-scroll-container::-webkit-scrollbar-thumb, 
+.mobile-cart-scroll::-webkit-scrollbar-thumb,
+.enhanced-cart-scroll::-webkit-scrollbar-thumb {
+  background: linear-gradient(180deg, #6b7280 0%, #4b5563 100%);
+  border-radius: 6px;
+  border: 2px solid #374151;
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.1);
+}
+
+.cart-scroll-container::-webkit-scrollbar-thumb:hover, 
+.mobile-cart-scroll::-webkit-scrollbar-thumb:hover,
+.enhanced-cart-scroll::-webkit-scrollbar-thumb:hover {
+  background: linear-gradient(180deg, #9ca3af 0%, #6b7280 100%);
+}
+
+.cart-scroll-container::-webkit-scrollbar-thumb:active, 
+.mobile-cart-scroll::-webkit-scrollbar-thumb:active,
+.enhanced-cart-scroll::-webkit-scrollbar-thumb:active {
+  background: linear-gradient(180deg, #d1d5db 0%, #9ca3af 100%);
+}
+
+/* Fallback for older cart-scroll class */
+.cart-scroll {
+  scrollbar-width: thin;
+  scrollbar-color: #6b7280 #374151;
+  overflow-y: auto !important;
+  overflow-x: hidden;
+  overscroll-behavior: contain;
+  scroll-behavior: smooth;
+  will-change: scroll-position;
+  position: relative;
+  flex: 1 1 auto;
+  min-height: 0;
+  contain: layout style paint;
+  -webkit-overflow-scrolling: touch;
+}
+
+.cart-scroll::-webkit-scrollbar {
+  width: 8px;
+}
+
+.cart-scroll::-webkit-scrollbar-track {
+  background: #374151;
+  border-radius: 6px;
+}
+
+.cart-scroll::-webkit-scrollbar-thumb {
+  background: linear-gradient(180deg, #6b7280 0%, #4b5563 100%);
+  border-radius: 6px;
+  border: 2px solid #374151;
+}
+
+.cart-scroll::-webkit-scrollbar-thumb:hover {
+  background: linear-gradient(180deg, #9ca3af 0%, #6b7280 100%);
+}
+
+/* Receipt line dividers */
+.line {
+  border-top: 1px dashed;
+  margin: 10px 0;
+}
+
+/* Targeted visibility fixes for specific components */
+
+/* Table grid status text */
+.table-status span {
+  color: #111827;
+  font-weight: 600;
+}
+
+.dark .table-status span {
+  color: #f9fafb;
+}
+
+/* Menu grid item text */
+.menu-item h3 {
+  color: #111827;
+  font-weight: 600;
+}
+
+.dark .menu-item h3 {
+  color: #f9fafb;
+}
+
+.menu-item .price {
+  color: #059669;
+  font-weight: 700;
+}
+
+.dark .menu-item .price {
+  color: #34d399;
+}
+
+/* Order panel item text */
+.order-item-name {
+  color: #111827;
+  font-weight: 600;
+}
+
+.dark .order-item-name {
+  color: #f9fafb;
+}
+
+.order-item-details {
+  color: #4b5563;
+}
+
+.dark .order-item-details {
+  color: #9ca3af;
+}
+
+/* Admin dashboard text */
+.admin-dashboard h1,
+.admin-dashboard h2,
+.admin-dashboard h3 {
+  color: #111827;
+}
+
+.dark .admin-dashboard h1,
+.dark .admin-dashboard h2,
+.dark .admin-dashboard h3 {
+  color: #f9fafb;
+}
+
+/* Report text */
+.reports-section p,
+.reports-section span {
+  color: #374151;
+}
+
+.dark .reports-section p,
+.dark .reports-section span {
+  color: #d1d5db;
+}
+
+/* Additional specific fixes for better visibility */
+
+/* Ensure all cart items are visible */
+.cart-scroll .bg-gray-50 {
+  background-color: #f9fafb !important;
+}
+
+.dark .cart-scroll .bg-gray-50 {
+  background-color: #374151 !important;
+}
+
+/* Menu grid text enhancements */
+.menu-item-container h3,
+.menu-item-container h4 {
+  color: #111827 !important;
+  font-weight: 600 !important;
+}
+
+.dark .menu-item-container h3,
+.dark .menu-item-container h4 {
+  color: #f9fafb !important;
+}
+
+/* Better button text contrast */
+button span,
+button div {
+  color: inherit !important;
+}
+
+/* Login form specific fixes */
+.login-container input::placeholder {
+  color: #9ca3af !important;
+}
+
+.dark .login-container input::placeholder {
+  color: #6b7280 !important;
+}
+
+/* Header navigation text fixes */
+.nav-button {
+  color: #4b5563 !important;
+}
+
+.dark .nav-button {
+  color: #d1d5db !important;
+}
+
+/* Force high contrast for critical text */
+.text-critical {
+  color: #111827 !important;
+  font-weight: 600 !important;
+}
+
+.dark .text-critical {
+  color: #f9fafb !important;
+}
+
+/* Force white text on gray/black backgrounds */
+.bg-gray-800 *, .bg-gray-900 *, .bg-black * {
+  color: white !important;
+}
+
+.bg-gray-800 .text-gray-600, .bg-gray-900 .text-gray-600, .bg-black .text-gray-600 {
+  color: #d1d5db !important;
+}
+
+.bg-gray-800 .text-gray-500, .bg-gray-900 .text-gray-500, .bg-black .text-gray-500 {
+  color: #9ca3af !important;
+}
+
+.bg-gray-800 .text-gray-400, .bg-gray-900 .text-gray-400, .bg-black .text-gray-400 {
+  color: #6b7280 !important;
+}
+
+/* Specific cart item styling */
+.cart-item-container {
+  background-color: #1f2937 !important;
+  border: 1px solid #374151 !important;
+  color: white !important;
+}
+
+.cart-item-container * {
+  color: white !important;
+}
+
+.cart-item-container .text-gray-400 {
+  color: #9ca3af !important;
+}
+
+.cart-item-container .text-gray-500 {
+  color: #6b7280 !important;
+}
+
+/* Payment modal text fixes */
+.payment-modal {
+  background-color: #1f2937 !important;
+  color: white !important;
+}
+
+.payment-modal * {
+  color: white !important;
+}
+
+.payment-modal .text-gray-700 {
+  color: #d1d5db !important;
+}
+
+.payment-modal .text-gray-600 {
+  color: #9ca3af !important;
+}
+
+/* Table grid improvements */
+.table-item {
+  color: white !important;
+}
+
+.table-item * {
+  color: white !important;
+}
+
+/* Admin panel text improvements */
+.admin-panel {
+  background-color: #111827 !important;
+}
+
+.admin-panel * {
+  color: white !important;
+}
+
+/* Override any remaining gray text on dark backgrounds */
+[class*="bg-gray-8"] *,
+[class*="bg-gray-9"] *,
+[class*="bg-black"] * {
+  color: white !important;
+}
+
+[class*="bg-gray-8"] .text-amber-600,
+[class*="bg-gray-9"] .text-amber-600 {
+  color: #fbbf24 !important;
+}
+
+[class*="bg-gray-8"] .text-red-500,
+[class*="bg-gray-9"] .text-red-500 {
+  color: #ef4444 !important;
+}
+
+[class*="bg-gray-8"] .text-green-600,
+[class*="bg-gray-9"] .text-green-600 {
+  color: #22c55e !important;
+}
+
+/* Force dark mode for the entire application */
+:root {
+  color-scheme: dark;
+}
+
+/* Ensure the body is properly dark */
+body {
+  @apply bg-gray-900 text-white;
+}
+
+/* Force all backgrounds and text to be dark/white where appropriate */
+.bg-white {
+  @apply !bg-gray-900;
+}
+
+.text-gray-900 {
+  @apply !text-white;
+}
+
+.text-black {
+  @apply !text-white;
+}
+
+/* Enhanced scrollbar styles */
+.cart-scroll-container::-webkit-scrollbar,
+.mobile-cart-scroll::-webkit-scrollbar,
+.cart-scroll::-webkit-scrollbar {
+  width: 8px;
+}
+
+.cart-scroll-container::-webkit-scrollbar-track,
+.mobile-cart-scroll::-webkit-scrollbar-track,
+.cart-scroll::-webkit-scrollbar-track {
+  background: rgba(55, 65, 81, 0.5);
+  border-radius: 4px;
+}
+
+.cart-scroll-container::-webkit-scrollbar-thumb,
+.mobile-cart-scroll::-webkit-scrollbar-thumb,
+.cart-scroll::-webkit-scrollbar-thumb {
+  background: linear-gradient(135deg, #f59e0b, #d97706);
+  border-radius: 4px;
+  border: 1px solid rgba(55, 65, 81, 0.3);
+}
+
+.cart-scroll-container::-webkit-scrollbar-thumb:hover,
+.mobile-cart-scroll::-webkit-scrollbar-thumb:hover,
+.cart-scroll::-webkit-scrollbar-thumb:hover {
+  background: linear-gradient(135deg, #d97706, #b45309);
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.3);
+}
+
+/* Ensure proper scrolling behavior */
+.cart-scroll-container,
+.mobile-cart-scroll {
+  overflow-y: auto !important;
+  overflow-x: hidden;
+  scroll-behavior: smooth;
+  -webkit-overflow-scrolling: touch;
+  scrollbar-width: thin;
+  scrollbar-color: #f59e0b rgba(55, 65, 81, 0.5);
+}
+
+/* Force maximum height for cart containers to enable scrolling */
+.cart-scroll-container {
+  max-height: calc(100vh - 300px) !important;
+}
+
+.mobile-cart-scroll {
+  max-height: calc(100vh - 200px) !important;
+}
+
+/* Fix for any text that should be white on gray/black backgrounds */
+.bg-gray-800 .text-gray-700,
+.bg-gray-900 .text-gray-700,
+.bg-black .text-gray-700 {
+  @apply !text-white;
+}
+
+.bg-gray-800 .text-gray-600,
+.bg-gray-900 .text-gray-600,
+.bg-black .text-gray-600 {
+  @apply !text-gray-300;
+}
+
+.bg-gray-800 .text-gray-500,
+.bg-gray-900 .text-gray-500,
+.bg-black .text-gray-500 {
+  @apply !text-gray-400;
+}
+
+/* Hide scrollbars when not needed */
+.scrollbar-hide {
+  -ms-overflow-style: none;
+  scrollbar-width: none;
+}
+
+.scrollbar-hide::-webkit-scrollbar {
+  display: none;
+}
+
+/* Button hover effects */
+.menu-item-hover:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 8px 25px rgba(0, 0, 0, 0.15);
+}
+
+/* Loading animations */
+@keyframes slideDown {
+  from {
+    opacity: 0;
+    transform: translateY(-20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes slideInUp {
+  from {
+    opacity: 0;
+    transform: translateY(20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes slideInRight {
+  from {
+    opacity: 0;
+    transform: translateX(20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateX(0);
+  }
+}
+
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+.animate-slideDown {
+  animation: slideDown 0.5s ease-out;
+}
+
+.animate-slideInUp {
+  animation: slideInUp 0.6s ease-out;
+}
+
+.animate-slideInRight {
+  animation: slideInRight 0.4s ease-out;
+}
+
+.animate-fadeIn {
+  animation: fadeIn 0.3s ease-out;
+}
+
+/* Payment modal styles */
+.payment-modal {
+  animation: slideInUp 0.3s ease-out;
+}
+
+/* Table grid animations */
+.table-item {
+  transition: all 0.2s ease-in-out;
+}
+
+.table-item:hover {
+  transform: scale(1.02);
+}
+
+/* Enhanced focus styles */
+input:focus,
+button:focus,
+select:focus {
+  outline: 2px solid #f59e0b;
+  outline-offset: 2px;
+}
+
+/* Responsive text sizing */
+@media (max-width: 640px) {
+  .text-responsive {
+    font-size: 0.875rem;
+  }
+}
+
+/* Print styles for receipts */
+@media print {
+  .no-print {
+    display: none !important;
+  }
+  
+  body {
+    background: white !important;
+    color: black !important;
+  }
+}
+
+/* Custom toast styles */
+.react-hot-toast {
+  font-family: inherit;
+}
+
+/* Ensure proper z-indexing */
+.modal-overlay {
+  z-index: 50;
+}
+
+.mobile-cart-overlay {
+  z-index: 60;
+}
+
+.toast-container {
+  z-index: 70;
 }
