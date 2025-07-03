@@ -2,8 +2,8 @@
 
 import { useState, useEffect } from 'react'
 import { 
-  Download, Calendar, Filter, FileText, 
-  TrendingUp, Package, DollarSign, X, ChevronDown,
+  Download, Filter, FileText, 
+  Package, X, ChevronDown,
   Play, Eye
 } from 'lucide-react'
 import { supabase } from '@/lib/supabase'
@@ -260,7 +260,7 @@ export default function SummaryExport() {
       filteredOrders.forEach(order => {
         order.order_items?.forEach(item => {
           let categorized = false
-          for (const [category, patterns] of Object.entries(categoryPatterns)) {
+          for (const [category] of Object.entries(categoryPatterns)) {
             if (matchesCategory(item.menu_item_name, category)) {
               if (!categoryBreakdown[category]) {
                 categoryBreakdown[category] = { quantity: 0, revenue: 0 }
@@ -272,7 +272,7 @@ export default function SummaryExport() {
             }
           }
           
-          // If item doesn't match any category, put it in "Other"
+          // If item doesn&apos;t match any category, put it in &quot;Other&quot;
           if (!categorized) {
             if (!categoryBreakdown['Other']) {
               categoryBreakdown['Other'] = { quantity: 0, revenue: 0 }
@@ -321,7 +321,7 @@ export default function SummaryExport() {
         <!DOCTYPE html>
         <html>
         <head>
-          <title>Gloria Jean&apos;s Sales Summary</title>
+          <title>Gloria Jean&#39;s Sales Summary</title>
           <style>
             body { font-family: Arial, sans-serif; margin: 20px; color: #333; }
             .header { text-align: center; margin-bottom: 30px; border-bottom: 2px solid #F59E0B; padding-bottom: 10px; }
@@ -343,7 +343,7 @@ export default function SummaryExport() {
         </head>
         <body>
           <div class="header">
-            <div class="company-name">Gloria Jean&apos;s Coffees</div>
+            <div class="company-name">Gloria Jean&#39;s Coffees</div>
             <div style="font-size: 16px; margin: 5px 0;">Sales Summary Report</div>
             <div class="date-range">
               Period: ${new Date(summaryData.dateRange.start).toLocaleDateString()} - ${new Date(summaryData.dateRange.end).toLocaleDateString()}
@@ -430,7 +430,7 @@ export default function SummaryExport() {
 
           <div class="footer">
             <div>Generated on ${new Date().toLocaleString()}</div>
-            <div>Gloria Jean&apos;s Coffees POS System</div>
+            <div>Gloria Jean&#39;s Coffees POS System</div>
           </div>
         </body>
         </html>
@@ -673,7 +673,7 @@ export default function SummaryExport() {
           {/* Report Header */}
           <div className="text-center mb-8 pb-6 border-b-2 border-amber-500">
             <h1 className="text-3xl font-bold text-amber-600 dark:text-amber-400 mb-2">
-              Gloria Jean&apos;s Coffees
+              Gloria Jean&#39;s Coffees
             </h1>
             <h2 className="text-xl text-gray-900 dark:text-white mb-2">Sales Summary Report</h2>
             <p className="text-gray-600 dark:text-gray-300">
@@ -812,7 +812,7 @@ export default function SummaryExport() {
               Generated on {new Date().toLocaleString()}
             </p>
             <p className="text-gray-600 dark:text-gray-400 text-sm">
-              Gloria Jean&apos;s Coffees POS System
+              Gloria Jean&#39;s Coffees POS System
             </p>
           </div>
         </div>
@@ -824,7 +824,7 @@ export default function SummaryExport() {
           <FileText className="h-16 w-16 text-gray-400 mx-auto mb-4" />
           <h3 className="text-lg font-semibold text-gray-900 dark:text-white mb-2">Ready to Generate Report</h3>
           <p className="text-gray-600 dark:text-gray-300 mb-4">
-            Configure your filters above and click "Generate Report" to create a detailed sales summary
+            Configure your filters above and click &quot;Generate Report&quot; to create a detailed sales summary
           </p>
           <div className="bg-amber-50 dark:bg-amber-900/20 rounded-lg p-4 max-w-md mx-auto border border-amber-200 dark:border-amber-800">
             <div className="flex items-center gap-2 text-amber-800 dark:text-amber-200 mb-2">

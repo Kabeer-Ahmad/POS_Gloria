@@ -37,12 +37,7 @@ interface OrderItem {
   extras_cost: number
 }
 
-interface SalesData {
-  date: string
-  revenue: number
-  orders: number
-  avgOrder: number
-}
+
 
 export default function Reports() {
   const [activeTab, setActiveTab] = useState<'overview' | 'orders' | 'analytics'>('overview')
@@ -63,6 +58,7 @@ export default function Reports() {
 
   useEffect(() => {
     applyFilters()
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [orders, dateFilter, paymentFilter, statusFilter, searchQuery])
 
   const loadOrders = async () => {
@@ -374,7 +370,7 @@ export default function Reports() {
                           borderRadius: '8px',
                           color: '#F9FAFB'
                         }}
-                        formatter={(value: any) => [formatPrice(value), 'Revenue']}
+                        formatter={(value: number) => [formatPrice(value), 'Revenue']}
                       />
                       <Area 
                         type="monotone" 
@@ -411,7 +407,7 @@ export default function Reports() {
                           borderRadius: '8px',
                           color: '#F9FAFB'
                         }}
-                        formatter={(value: any) => [value, 'Orders']}
+                        formatter={(value: number) => [value, 'Orders']}
                       />
                       <Bar 
                         dataKey="orders" 
@@ -427,7 +423,7 @@ export default function Reports() {
               <div className="bg-white dark:bg-gray-800 rounded-xl p-6 shadow-sm border border-gray-200 dark:border-gray-700 lg:col-span-2">
                 <h3 className="text-lg font-semibold text-gray-900 dark:text-white mb-4">Top Selling Items</h3>
                 <div className="space-y-3">
-                  {topItems.slice(0, 5).map((item: any, index: number) => (
+                  {topItems.slice(0, 5).map((item: { name: string; quantity: number; revenue: number }, index: number) => (
                     <div key={item.name} className="flex items-center justify-between p-3 bg-gray-50 dark:bg-gray-700 rounded-lg">
                       <div className="flex items-center gap-3">
                         <div className="w-8 h-8 bg-amber-100 dark:bg-amber-900 rounded-full flex items-center justify-center">

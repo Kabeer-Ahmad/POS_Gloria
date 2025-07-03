@@ -9,7 +9,7 @@ import {
   Calendar, Download, TrendingUp, DollarSign, 
   ShoppingCart, Users, Award
 } from 'lucide-react'
-import { usePosStore } from '@/lib/store'
+
 import { format, subDays } from 'date-fns'
 import toast from 'react-hot-toast'
 
@@ -301,9 +301,9 @@ export default function Reports() {
               <h3 className="text-lg font-semibold text-gray-900 mb-4">Top Selling Days</h3>
               <div className="space-y-3">
                 {reportData.salesData
-                  .sort((a: any, b: any) => b.revenue - a.revenue)
+                  .sort((a: SalesData, b: SalesData) => b.revenue - a.revenue)
                   .slice(0, 5)
-                  .map((day: any, index: number) => (
+                  .map((day: SalesData, index: number) => (
                     <div key={index} className="flex items-center justify-between p-3 bg-gray-50 rounded-lg">
                       <div>
                         <p className="font-medium text-gray-900">{day.date}</p>
@@ -366,9 +366,9 @@ export default function Reports() {
               <h3 className="text-lg font-semibold text-gray-900 mb-4">Top Performers</h3>
               <div className="space-y-3">
                 {reportData.menuPerformance
-                  .sort((a: any, b: any) => b.sales - a.sales)
+                  .sort((a: MenuPerformance, b: MenuPerformance) => b.sales - a.sales)
                   .slice(0, 5)
-                  .map((item: any, index: number) => (
+                  .map((item: MenuPerformance, index: number) => (
                     <div key={index} className="flex items-center justify-between p-3 bg-gray-50 rounded-lg">
                       <div className="flex items-center gap-3">
                         <div 
