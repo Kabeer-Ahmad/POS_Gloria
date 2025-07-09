@@ -49,7 +49,7 @@ interface MenuItem {
 }
 
 export default function AdminDashboard() {
-  const { staff, menuItems, addMenuItem, updateMenuItem, deleteMenuItem, toggleItemAvailability } = usePosStore()
+  const { staff, menuItems, loadMenuItems, addMenuItem, updateMenuItem, deleteMenuItem, toggleItemAvailability } = usePosStore()
   const [activeTab, setActiveTab] = useState<'overview' | 'orders' | 'menu' | 'summary'>('overview')
   const [orders, setOrders] = useState<OrderData[]>([])
   const [isLoading, setIsLoading] = useState(false)
@@ -57,17 +57,25 @@ export default function AdminDashboard() {
   // Menu management states
   const [showAddItem, setShowAddItem] = useState(false)
   const [editingItem, setEditingItem] = useState<MenuItem | null>(null)
+  const [editingSizes, setEditingSizes] = useState<string[]>(['Regular'])
+  const [editingPrices, setEditingPrices] = useState<Record<string, number>>({ Regular: 0 })
   const [newItem, setNewItem] = useState<Partial<MenuItem>>({
     name: '',
     category: 'Espresso Classics',
     sizes: ['Regular'],
     prices: { Regular: 0 },
     description: '',
+    image_url: '',
     is_active: true
   })
 
+  const [newSizes, setNewSizes] = useState<string[]>(['Regular'])
+  const [newPrices, setNewPrices] = useState<Record<string, number>>({ Regular: 0 })
+
   useEffect(() => {
     loadOrderData()
+    loadMenuItems()
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [])
 
   const loadOrderData = async () => {
@@ -116,7 +124,6 @@ export default function AdminDashboard() {
   const todayOrdersCount = todayOrders.length
   const totalRevenue = orders.reduce((sum, order) => sum + order.total, 0)
   const todayRevenue = todayOrders.reduce((sum, order) => sum + order.total, 0)
-  const avgOrderValue = totalOrders > 0 ? totalRevenue / totalOrders : 0
   
   const cashOrders = orders.filter(o => o.payment_method === 'cash').length
   const cardOrders = orders.filter(o => o.payment_method === 'card').length
@@ -130,9 +137,16 @@ export default function AdminDashboard() {
     'Smoothies', 'Over Ice', 'Food', 'Deals', 'Extras'
   ]
 
-  const handleAddItem = () => {
-    if (!newItem.name || !newItem.prices?.Regular || !newItem.category) {
-      toast.error('Please fill in all required fields')
+  const handleAddItem = async () => {
+    if (!newItem.name || !newItem.category) {
+      toast.error('Please fill in item name and category')
+      return
+    }
+
+    // Validate that all sizes have prices
+    const hasValidPrices = newSizes.every(size => newPrices[size] && newPrices[size] > 0)
+    if (!hasValidPrices) {
+      toast.error('Please set valid prices for all sizes')
       return
     }
 
@@ -140,23 +154,29 @@ export default function AdminDashboard() {
       id: Date.now().toString(),
       name: newItem.name,
       category: newItem.category,
-      sizes: newItem.sizes || ['Regular'],
-      prices: newItem.prices,
+      sizes: newSizes,
+      prices: newPrices,
       description: newItem.description || '',
+      image_url: newItem.image_url || '',
       is_active: newItem.is_active ?? true
     }
 
-    addMenuItem(item)
-    setNewItem({
-      name: '',
-      category: 'Espresso Classics',
-      sizes: ['Regular'],
-      prices: { Regular: 0 },
-      description: '',
-      is_active: true
-    })
-    setShowAddItem(false)
-    toast.success('Menu item added successfully!')
+    const success = await addMenuItem(item)
+    if (success) {
+      setNewItem({
+        name: '',
+        category: 'Espresso Classics',
+        sizes: ['Regular'],
+        prices: { Regular: 0 },
+        description: '',
+        image_url: '',
+        is_active: true
+      })
+      setNewSizes(['Regular'])
+      setNewPrices({ Regular: 0 })
+      setShowAddItem(false)
+      toast.success('Menu item added successfully!')
+    }
   }
 
   const handleEditItem = (item: MenuItem) => {
@@ -167,73 +187,132 @@ export default function AdminDashboard() {
       sizes: item.sizes,
       prices: item.prices,
       description: item.description || '',
+      image_url: item.image_url || '',
       is_active: item.is_active
     })
+    setEditingSizes(item.sizes)
+    setEditingPrices(item.prices)
   }
 
-  const handleUpdateItem = () => {
-    if (!editingItem || !editingItem.name || !editingItem.prices.Regular) {
-      toast.error('Please fill in all required fields')
+  const handleUpdateItem = async () => {
+    if (!editingItem || !editingItem.name) {
+      toast.error('Please fill in item name')
       return
     }
 
-    updateMenuItem(editingItem.id, editingItem)
-    setEditingItem(null)
-    toast.success('Menu item updated successfully!')
-  }
+    // Validate that all sizes have prices
+    const hasValidPrices = editingSizes.every(size => editingPrices[size] && editingPrices[size] > 0)
+    if (!hasValidPrices) {
+      toast.error('Please set valid prices for all sizes')
+      return
+    }
 
-  const handleDeleteItem = (id: string) => {
-    if (confirm('Are you sure you want to delete this menu item?')) {
-      deleteMenuItem(id)
-      toast.success('Menu item deleted successfully!')
+    const updatedItem = {
+      ...editingItem,
+      sizes: editingSizes,
+      prices: editingPrices
+    }
+
+    const success = await updateMenuItem(editingItem.id, updatedItem)
+    if (success) {
+      setEditingItem(null)
+      setEditingSizes(['Regular'])
+      setEditingPrices({ Regular: 0 })
+      toast.success('Menu item updated successfully!')
     }
   }
 
-  const handleToggleAvailability = (id: string) => {
-    toggleItemAvailability(id)
-    toast.success('Item availability updated!')
+  const handleDeleteItem = async (id: string) => {
+    if (confirm('Are you sure you want to delete this menu item?')) {
+      const success = await deleteMenuItem(id)
+      if (success) {
+        toast.success('Menu item deleted successfully!')
+      }
+    }
+  }
+
+  const handleToggleAvailability = async (id: string) => {
+    const success = await toggleItemAvailability(id)
+    if (success) {
+      toast.success('Item availability updated!')
+    }
   }
 
   return (
     <div className="min-h-screen bg-gray-50 dark:bg-gray-900">
       {/* Navigation */}
       <nav className="bg-white dark:bg-gray-800 shadow-sm border-b border-gray-200 dark:border-gray-700">
-        <div className="px-6 py-4">
+        <div className="px-4 py-3">
           <div className="flex items-center justify-between">
-            <div className="flex items-center gap-4">
-              <h1 className="text-xl font-bold text-gray-900 dark:text-white">
+            <div className="flex items-center gap-3">
+              <h1 className="text-lg font-bold text-gray-900 dark:text-white">
                 Admin Dashboard
               </h1>
-              <span className="text-sm text-gray-600 dark:text-gray-300">
+              <span className="text-xs text-gray-600 dark:text-gray-300 hidden sm:block">
                 Welcome, {staff?.email}
               </span>
             </div>
             
-            <div className="flex items-center gap-4">
-              <div className="flex bg-gray-100 dark:bg-gray-700 rounded-lg p-1">
+            <div className="flex items-center gap-2">
+              {/* Mobile: Dropdown for tabs */}
+              <div className="sm:hidden">
+                <select
+                  value={activeTab}
+                  onChange={(e) => setActiveTab(e.target.value as 'overview' | 'orders' | 'menu' | 'summary')}
+                  className="px-3 py-1.5 text-sm bg-gray-100 dark:bg-gray-700 text-gray-900 dark:text-white rounded-md border border-gray-300 dark:border-gray-600"
+                >
+                  {tabs.map(({ key, label }) => (
+                    <option key={key} value={key}>
+                      {label}
+                    </option>
+                  ))}
+                </select>
+              </div>
+
+              {/* Desktop: Tab buttons */}
+              <div className="hidden sm:flex bg-gray-100 dark:bg-gray-700 rounded-lg p-1">
                 {tabs.map(({ key, label, icon: Icon }) => (
                   <button
                     key={key}
                     onClick={() => setActiveTab(key as 'overview' | 'orders' | 'menu' | 'summary')}
-                    className={`flex items-center gap-2 px-3 py-2 rounded-md text-sm font-medium transition-colors ${
+                    className={`flex items-center gap-1 px-3 py-1.5 rounded-md text-sm font-medium transition-colors ${
                       activeTab === key
                         ? 'bg-white dark:bg-gray-600 text-gray-900 dark:text-white shadow-sm'
-                        : 'text-white dark:text-white hover:text-gray-900 dark:hover:text-white'
+                        : 'text-gray-600 dark:text-gray-300 hover:text-gray-900 dark:hover:text-white'
                     }`}
                   >
-                    <Icon className="h-4 w-4" />
-                    {label}
+                    <Icon className="h-3 w-3" />
+                    <span className="hidden md:inline">{label}</span>
                   </button>
                 ))}
               </div>
               
               <button
                 onClick={() => window.location.reload()}
-                className="flex items-center gap-2 px-4 py-2 text-sm bg-amber-600 text-white rounded-lg hover:bg-amber-700 transition-colors"
+                className="flex items-center gap-1 px-3 py-1.5 text-sm bg-amber-600 text-white rounded-md hover:bg-amber-700 transition-colors"
               >
-                <ArrowLeft className="h-4 w-4" />
-                Back to POS
+                <ArrowLeft className="h-3 w-3" />
+                <span className="hidden sm:inline">Back to POS</span>
               </button>
+            </div>
+          </div>
+
+          {/* Mobile Staff Info */}
+          <div className="sm:hidden mt-3 pt-3 border-t border-gray-200 dark:border-gray-700">
+            <div className="flex items-center justify-between">
+              <div className="flex items-center gap-2">
+                <div className="w-6 h-6 bg-gradient-to-r from-amber-500 to-orange-500 rounded-full flex items-center justify-center text-white font-bold text-xs">
+                  {staff?.email?.charAt(0).toUpperCase() || 'A'}
+                </div>
+                <div>
+                  <p className="text-sm font-medium text-gray-900 dark:text-gray-100">
+                    {staff?.email}
+                  </p>
+                  <p className="text-xs text-gray-600 dark:text-gray-400">
+                    {staff?.role === 'admin' ? 'Administrator' : 'Cashier'}
+                  </p>
+                </div>
+              </div>
             </div>
           </div>
         </div>
@@ -288,8 +367,8 @@ export default function AdminDashboard() {
                     <TrendingUp className="h-6 w-6 text-amber-600 dark:text-amber-400" />
                   </div>
                   <div>
-                    <p className="text-sm font-medium text-gray-600 dark:text-gray-300">Avg Order Value</p>
-                    <p className="text-2xl font-bold text-gray-900 dark:text-white">Rs. {avgOrderValue.toFixed(0)}</p>
+                    <p className="text-sm font-medium text-gray-600 dark:text-gray-300">Today&apos;s Revenue</p>
+                    <p className="text-2xl font-bold text-gray-900 dark:text-white">Rs. {todayRevenue.toFixed(0)}</p>
                   </div>
                 </div>
               </div>
@@ -504,16 +583,84 @@ export default function AdminDashboard() {
                 </select>
               </div>
 
+              {/* Sizes and Prices */}
               <div>
                 <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
-                  Price (Rs.) *
+                  Sizes and Prices *
+                </label>
+                <div className="space-y-3">
+                  {newSizes.map((size, index) => (
+                    <div key={index} className="flex gap-2">
+                      <input
+                        type="text"
+                        value={size}
+                        onChange={(e) => {
+                          const updatedSizes = [...newSizes]
+                          updatedSizes[index] = e.target.value
+                          setNewSizes(updatedSizes)
+                          
+                          // Update prices object
+                          const updatedPrices = { ...newPrices }
+                          if (e.target.value !== size) {
+                            delete updatedPrices[size]
+                            updatedPrices[e.target.value] = newPrices[size] || 0
+                          }
+                          setNewPrices(updatedPrices)
+                        }}
+                        className="flex-1 px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-amber-500 focus:border-amber-500 bg-white dark:bg-gray-700 text-gray-900 dark:text-white"
+                        placeholder="Size name"
+                      />
+                      <input
+                        type="number"
+                        value={newPrices[size] || 0}
+                        onChange={(e) => setNewPrices({ ...newPrices, [size]: Number(e.target.value) })}
+                        className="w-24 px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-amber-500 focus:border-amber-500 bg-white dark:bg-gray-700 text-gray-900 dark:text-white"
+                        placeholder="Price"
+                        min="0"
+                      />
+                      {newSizes.length > 1 && (
+                        <button
+                          type="button"
+                          onClick={() => {
+                            const updatedSizes = newSizes.filter((_, i) => i !== index)
+                            setNewSizes(updatedSizes)
+                            
+                            const updatedPrices = { ...newPrices }
+                            delete updatedPrices[size]
+                            setNewPrices(updatedPrices)
+                          }}
+                          className="px-2 py-2 text-red-600 hover:bg-red-50 dark:hover:bg-red-900 rounded-lg transition-colors"
+                        >
+                          <X className="h-4 w-4" />
+                        </button>
+                      )}
+                    </div>
+                  ))}
+                  <button
+                    type="button"
+                    onClick={() => {
+                      const newSize = `Size ${newSizes.length + 1}`
+                      setNewSizes([...newSizes, newSize])
+                      setNewPrices({ ...newPrices, [newSize]: 0 })
+                    }}
+                    className="flex items-center gap-2 px-3 py-2 text-sm text-blue-600 hover:bg-blue-50 dark:hover:bg-blue-900 rounded-lg transition-colors"
+                  >
+                    <Plus className="h-4 w-4" />
+                    Add Size
+                  </button>
+                </div>
+              </div>
+
+              <div>
+                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                  Image URL (Optional)
                 </label>
                 <input
-                  type="number"
-                  value={newItem.prices?.Regular || 0}
-                  onChange={(e) => setNewItem({ ...newItem, prices: { Regular: Number(e.target.value) } })}
+                  type="url"
+                  value={newItem.image_url}
+                  onChange={(e) => setNewItem({ ...newItem, image_url: e.target.value })}
                   className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-amber-500 focus:border-amber-500 bg-white dark:bg-gray-700 text-gray-900 dark:text-white"
-                  min="0"
+                  placeholder="https://example.com/image.jpg"
                 />
               </div>
 
@@ -602,19 +749,84 @@ export default function AdminDashboard() {
                 </select>
               </div>
 
+              {/* Sizes and Prices */}
               <div>
                 <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
-                  Price (Rs.) *
+                  Sizes and Prices *
+                </label>
+                <div className="space-y-3">
+                  {editingSizes.map((size, index) => (
+                    <div key={index} className="flex gap-2">
+                      <input
+                        type="text"
+                        value={size}
+                        onChange={(e) => {
+                          const updatedSizes = [...editingSizes]
+                          updatedSizes[index] = e.target.value
+                          setEditingSizes(updatedSizes)
+                          
+                          // Update prices object
+                          const updatedPrices = { ...editingPrices }
+                          if (e.target.value !== size) {
+                            delete updatedPrices[size]
+                            updatedPrices[e.target.value] = editingPrices[size] || 0
+                          }
+                          setEditingPrices(updatedPrices)
+                        }}
+                        className="flex-1 px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-amber-500 focus:border-amber-500 bg-white dark:bg-gray-700 text-gray-900 dark:text-white"
+                        placeholder="Size name"
+                      />
+                      <input
+                        type="number"
+                        value={editingPrices[size] || 0}
+                        onChange={(e) => setEditingPrices({ ...editingPrices, [size]: Number(e.target.value) })}
+                        className="w-24 px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-amber-500 focus:border-amber-500 bg-white dark:bg-gray-700 text-gray-900 dark:text-white"
+                        placeholder="Price"
+                        min="0"
+                      />
+                      {editingSizes.length > 1 && (
+                        <button
+                          type="button"
+                          onClick={() => {
+                            const updatedSizes = editingSizes.filter((_, i) => i !== index)
+                            setEditingSizes(updatedSizes)
+                            
+                            const updatedPrices = { ...editingPrices }
+                            delete updatedPrices[size]
+                            setEditingPrices(updatedPrices)
+                          }}
+                          className="px-2 py-2 text-red-600 hover:bg-red-50 dark:hover:bg-red-900 rounded-lg transition-colors"
+                        >
+                          <X className="h-4 w-4" />
+                        </button>
+                      )}
+                    </div>
+                  ))}
+                  <button
+                    type="button"
+                    onClick={() => {
+                      const newSize = `Size ${editingSizes.length + 1}`
+                      setEditingSizes([...editingSizes, newSize])
+                      setEditingPrices({ ...editingPrices, [newSize]: 0 })
+                    }}
+                    className="flex items-center gap-2 px-3 py-2 text-sm text-blue-600 hover:bg-blue-50 dark:hover:bg-blue-900 rounded-lg transition-colors"
+                  >
+                    <Plus className="h-4 w-4" />
+                    Add Size
+                  </button>
+                </div>
+              </div>
+
+              <div>
+                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                  Image URL (Optional)
                 </label>
                 <input
-                  type="number"
-                  value={editingItem.prices.Regular || 0}
-                  onChange={(e) => setEditingItem({ 
-                    ...editingItem, 
-                    prices: { ...editingItem.prices, Regular: Number(e.target.value) } 
-                  })}
+                  type="url"
+                  value={editingItem.image_url || ''}
+                  onChange={(e) => setEditingItem({ ...editingItem, image_url: e.target.value })}
                   className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-amber-500 focus:border-amber-500 bg-white dark:bg-gray-700 text-gray-900 dark:text-white"
-                  min="0"
+                  placeholder="https://example.com/image.jpg"
                 />
               </div>
 

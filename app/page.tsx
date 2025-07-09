@@ -9,563 +9,15 @@ import MenuGrid from '@/components/pos/MenuGrid'
 import OrderPanel from '@/components/pos/OrderPanel'
 import TableGrid from '@/components/pos/TableGrid'
 import Receipt from '@/components/pos/Receipt'
+import OrderHistory from '@/components/pos/OrderHistory'
 import AdminDashboard from '@/components/admin/AdminDashboard'
 import { usePosStore, Order } from '@/lib/store'
 import { getSession } from '@/lib/auth'
 
-interface MockMenuItem {
-  id: string
-  name: string
-  category: string
-  sizes: string[]
-  prices: Record<string, number>
-  is_active: boolean
-}
-
-// Complete menu data from seed
-const mockMenuItems: MockMenuItem[] = [
-  // ESPRESSO MENU - CLASSICS
-  {
-    id: '1',
-    name: 'Cappuccino / Caffé Latté',
-    category: 'Espresso - Classics',
-    sizes: ['Small', 'Regular', 'Large'],
-    prices: { Small: 750, Regular: 795, Large: 900 },
-    is_active: true
-  },
-  {
-    id: '2',
-    name: 'Caffé Americano',
-    category: 'Espresso - Classics',
-    sizes: ['Small', 'Regular', 'Large'],
-    prices: { Small: 550, Regular: 675, Large: 750 },
-    is_active: true
-  },
-  {
-    id: '3',
-    name: 'Espresso / Ristretto / Macchiato / Piccolo Latté',
-    category: 'Espresso - Classics',
-    sizes: ['Regular'],
-    prices: { Regular: 525 },
-    is_active: true
-  },
-
-  // ESPRESSO MENU - SPECIALTIES
-  {
-    id: '4',
-    name: 'Caffé Mocha',
-    category: 'Espresso - Specialties',
-    sizes: ['Small', 'Regular', 'Large'],
-    prices: { Small: 850, Regular: 925, Large: 1050 },
-    is_active: true
-  },
-  {
-    id: '5',
-    name: 'Caramel Latté',
-    category: 'Espresso - Specialties',
-    sizes: ['Small', 'Regular', 'Large'],
-    prices: { Small: 850, Regular: 925, Large: 1050 },
-    is_active: true
-  },
-  {
-    id: '6',
-    name: 'Very Vanilla Latté',
-    category: 'Espresso - Specialties',
-    sizes: ['Small', 'Regular', 'Large'],
-    prices: { Small: 850, Regular: 925, Large: 1050 },
-    is_active: true
-  },
-  {
-    id: '7',
-    name: 'Irish Nut Crème',
-    category: 'Espresso - Specialties',
-    sizes: ['Small', 'Regular', 'Large'],
-    prices: { Small: 850, Regular: 925, Large: 1050 },
-    is_active: true
-  },
-  {
-    id: '8',
-    name: 'White Chocolate Mocha',
-    category: 'Espresso - Specialties',
-    sizes: ['Small', 'Regular', 'Large'],
-    prices: { Small: 850, Regular: 925, Large: 1050 },
-    is_active: true
-  },
-  {
-    id: '9',
-    name: 'Mocha Caramelatte',
-    category: 'Espresso - Specialties',
-    sizes: ['Small', 'Regular', 'Large'],
-    prices: { Small: 850, Regular: 925, Large: 1050 },
-    is_active: true
-  },
-  {
-    id: '10',
-    name: 'Chocolate Macadamia Latté',
-    category: 'Espresso - Specialties',
-    sizes: ['Small', 'Regular', 'Large'],
-    prices: { Small: 850, Regular: 925, Large: 1050 },
-    is_active: true
-  },
-  {
-    id: '11',
-    name: 'Crème Brulee Latté',
-    category: 'Espresso - Specialties',
-    sizes: ['Small', 'Regular', 'Large'],
-    prices: { Small: 850, Regular: 925, Large: 1050 },
-    is_active: true
-  },
-  {
-    id: '12',
-    name: 'Hazelnut Latté',
-    category: 'Espresso - Specialties',
-    sizes: ['Small', 'Regular', 'Large'],
-    prices: { Small: 850, Regular: 925, Large: 1050 },
-    is_active: true
-  },
-  {
-    id: '13',
-    name: 'Mocha Truffle Latté',
-    category: 'Espresso - Specialties',
-    sizes: ['Small', 'Regular', 'Large'],
-    prices: { Small: 850, Regular: 925, Large: 1050 },
-    is_active: true
-  },
-  {
-    id: '14',
-    name: 'Minicino / Babycino',
-    category: 'Espresso - Specialties',
-    sizes: ['Regular'],
-    prices: { Regular: 550 },
-    is_active: true
-  },
-
-  // TEA
-  {
-    id: '15',
-    name: 'Hot Tea (English Breakfast, Green Tea)',
-    category: 'Tea',
-    sizes: ['All Sizes'],
-    prices: { 'All Sizes': 550 },
-    is_active: true
-  },
-  {
-    id: '16',
-    name: 'Chai Tea Latté',
-    category: 'Tea',
-    sizes: ['Small', 'Regular', 'Large'],
-    prices: { Small: 850, Regular: 925, Large: 1050 },
-    is_active: true
-  },
-
-  // HOT CHOCOLATE
-  {
-    id: '17',
-    name: 'Classic Hot Chocolate',
-    category: 'Hot Chocolate',
-    sizes: ['Small', 'Regular', 'Large'],
-    prices: { Small: 875, Regular: 925, Large: 1050 },
-    is_active: true
-  },
-  {
-    id: '18',
-    name: 'White Hot Chocolate',
-    category: 'Hot Chocolate',
-    sizes: ['Small', 'Regular', 'Large'],
-    prices: { Small: 875, Regular: 925, Large: 1050 },
-    is_active: true
-  },
-  {
-    id: '19',
-    name: 'GJC\'s Creamy Hot Cocoa',
-    category: 'Hot Chocolate',
-    sizes: ['Small', 'Regular', 'Large'],
-    prices: { Small: 875, Regular: 925, Large: 1050 },
-    is_active: true
-  },
-
-  // CHILLERS - ESPRESSO
-  {
-    id: '20',
-    name: 'Very Vanilla Chiller',
-    category: 'Chillers - Espresso',
-    sizes: ['Small', 'Regular', 'Large'],
-    prices: { Small: 950, Regular: 1050, Large: 1150 },
-    is_active: true
-  },
-  {
-    id: '21',
-    name: 'Crème Brule',
-    category: 'Chillers - Espresso',
-    sizes: ['Small', 'Regular', 'Large'],
-    prices: { Small: 950, Regular: 1050, Large: 1150 },
-    is_active: true
-  },
-  {
-    id: '22',
-    name: 'Voltage',
-    category: 'Chillers - Espresso',
-    sizes: ['Small', 'Regular', 'Large'],
-    prices: { Small: 950, Regular: 1050, Large: 1150 },
-    is_active: true
-  },
-  {
-    id: '23',
-    name: 'Mocha Java Voltage',
-    category: 'Chillers - Espresso',
-    sizes: ['Small', 'Regular', 'Large'],
-    prices: { Small: 950, Regular: 1050, Large: 1150 },
-    is_active: true
-  },
-
-  // CHILLERS - MOCHA
-  {
-    id: '24',
-    name: 'Cocoa Loco',
-    category: 'Chillers - Mocha',
-    sizes: ['Small', 'Regular', 'Large'],
-    prices: { Small: 950, Regular: 1050, Large: 1150 },
-    is_active: true
-  },
-  {
-    id: '25',
-    name: 'Cookies \'N Cream',
-    category: 'Chillers - Mocha',
-    sizes: ['Small', 'Regular', 'Large'],
-    prices: { Small: 950, Regular: 1050, Large: 1150 },
-    is_active: true
-  },
-  {
-    id: '26',
-    name: 'Mint Chocolate Bomb',
-    category: 'Chillers - Mocha',
-    sizes: ['Small', 'Regular', 'Large'],
-    prices: { Small: 975, Regular: 1050, Large: 1150 },
-    is_active: true
-  },
-  {
-    id: '27',
-    name: 'Crunchy Cookie Chiller',
-    category: 'Chillers - Mocha',
-    sizes: ['Small', 'Regular', 'Large'],
-    prices: { Small: 975, Regular: 1050, Large: 1150 },
-    is_active: true
-  },
-
-  // CHILLERS - GOURMET ICED
-  {
-    id: '28',
-    name: 'Original Iced Chocolate',
-    category: 'Chillers - Gourmet Iced',
-    sizes: ['Small', 'Regular', 'Large'],
-    prices: { Small: 975, Regular: 1050, Large: 1150 },
-    is_active: true
-  },
-  {
-    id: '29',
-    name: 'Strawberries \'N Cream',
-    category: 'Chillers - Gourmet Iced',
-    sizes: ['Small', 'Regular', 'Large'],
-    prices: { Small: 975, Regular: 1050, Large: 1150 },
-    is_active: true
-  },
-  {
-    id: '30',
-    name: 'Mango Macadamia',
-    category: 'Chillers - Gourmet Iced',
-    sizes: ['Small', 'Regular', 'Large'],
-    prices: { Small: 975, Regular: 1050, Large: 1150 },
-    is_active: true
-  },
-  {
-    id: '31',
-    name: 'Coconut White Chocolate',
-    category: 'Chillers - Gourmet Iced',
-    sizes: ['Small', 'Regular', 'Large'],
-    prices: { Small: 975, Regular: 1050, Large: 1150 },
-    is_active: true
-  },
-
-  // CHILLERS - FRUIT
-  {
-    id: '32',
-    name: 'Mango Chiller',
-    category: 'Chillers - Fruit',
-    sizes: ['Small', 'Regular', 'Large'],
-    prices: { Small: 1050, Regular: 1150, Large: 1300 },
-    is_active: true
-  },
-  {
-    id: '33',
-    name: 'Strawberry Chiller',
-    category: 'Chillers - Fruit',
-    sizes: ['Small', 'Regular', 'Large'],
-    prices: { Small: 1050, Regular: 1150, Large: 1300 },
-    is_active: true
-  },
-  {
-    id: '34',
-    name: 'Mixed Berry Chiller',
-    category: 'Chillers - Fruit',
-    sizes: ['Small', 'Regular', 'Large'],
-    prices: { Small: 1050, Regular: 1150, Large: 1300 },
-    is_active: true
-  },
-
-  // SMOOTHIES
-  {
-    id: '35',
-    name: 'Mango Smoothie',
-    category: 'Smoothies',
-    sizes: ['Small', 'Regular', 'Large'],
-    prices: { Small: 1100, Regular: 1250, Large: 1400 },
-    is_active: true
-  },
-  {
-    id: '36',
-    name: 'Strawberry Smoothie',
-    category: 'Smoothies',
-    sizes: ['Small', 'Regular', 'Large'],
-    prices: { Small: 1100, Regular: 1250, Large: 1400 },
-    is_active: true
-  },
-  {
-    id: '37',
-    name: 'Mixed Berry Smoothie',
-    category: 'Smoothies',
-    sizes: ['Small', 'Regular', 'Large'],
-    prices: { Small: 1100, Regular: 1250, Large: 1400 },
-    is_active: true
-  },
-
-  // OVER ICE
-  {
-    id: '38',
-    name: 'Signature Iced Coffee',
-    category: 'Over Ice',
-    sizes: ['Small', 'Regular', 'Large'],
-    prices: { Small: 975, Regular: 1050, Large: 1150 },
-    is_active: true
-  },
-  {
-    id: '39',
-    name: 'Iced Latté',
-    category: 'Over Ice',
-    sizes: ['Small', 'Regular', 'Large'],
-    prices: { Small: 975, Regular: 1050, Large: 1150 },
-    is_active: true
-  },
-  {
-    id: '40',
-    name: 'Iced Mocha',
-    category: 'Over Ice',
-    sizes: ['Small', 'Regular', 'Large'],
-    prices: { Small: 975, Regular: 1050, Large: 1150 },
-    is_active: true
-  },
-  {
-    id: '41',
-    name: 'Iced Americano',
-    category: 'Over Ice',
-    sizes: ['Small', 'Regular', 'Large'],
-    prices: { Small: 800, Regular: 950, Large: 1050 },
-    is_active: true
-  },
-  {
-    id: '42',
-    name: 'Italian Soda',
-    category: 'Over Ice',
-    sizes: ['All Sizes'],
-    prices: { 'All Sizes': 850 },
-    is_active: true
-  },
-  {
-    id: '43',
-    name: 'Iced Tea',
-    category: 'Over Ice',
-    sizes: ['All Sizes'],
-    prices: { 'All Sizes': 675 },
-    is_active: true
-  },
-
-  // FOOD
-  {
-    id: '44',
-    name: 'The Grande Zinger',
-    category: 'Food',
-    sizes: ['Regular'],
-    prices: { Regular: 700 },
-    is_active: true
-  },
-  {
-    id: '45',
-    name: 'Sandwich',
-    category: 'Food',
-    sizes: ['Regular'],
-    prices: { Regular: 850 },
-    is_active: true
-  },
-  {
-    id: '46',
-    name: 'Fries',
-    category: 'Food',
-    sizes: ['Regular'],
-    prices: { Regular: 400 },
-    is_active: true
-  },
-  {
-    id: '47',
-    name: 'Masala Fries',
-    category: 'Food',
-    sizes: ['Regular'],
-    prices: { Regular: 500 },
-    is_active: true
-  },
-  {
-    id: '48',
-    name: 'Stuffed Chicken Bread Slice',
-    category: 'Food',
-    sizes: ['Regular'],
-    prices: { Regular: 200 },
-    is_active: true
-  },
-  {
-    id: '49',
-    name: 'Pizza Slice',
-    category: 'Food',
-    sizes: ['Regular'],
-    prices: { Regular: 300 },
-    is_active: true
-  },
-  {
-    id: '50',
-    name: 'The Sizzling Fajita Pizza',
-    category: 'Food',
-    sizes: ['Regular'],
-    prices: { Regular: 1200 },
-    is_active: true
-  },
-  {
-    id: '51',
-    name: 'The Signature Chicken Spaghetti',
-    category: 'Food',
-    sizes: ['Regular'],
-    prices: { Regular: 950 },
-    is_active: true
-  },
-  {
-    id: '52',
-    name: 'Butter Milk Fries Drum Stick',
-    category: 'Food',
-    sizes: ['Regular'],
-    prices: { Regular: 600 },
-    is_active: true
-  },
-
-  // DEALS
-  {
-    id: '53',
-    name: 'Cappuccino (small) / Sandwich',
-    category: 'Deals',
-    sizes: ['Combo'],
-    prices: { Combo: 1400 },
-    is_active: true
-  },
-  {
-    id: '54',
-    name: 'Caffé Latté (small) / Chicken Bread',
-    category: 'Deals',
-    sizes: ['Combo'],
-    prices: { Combo: 1350 },
-    is_active: true
-  },
-  {
-    id: '55',
-    name: 'Cappuccino (small) / Sandwich & Fries',
-    category: 'Deals',
-    sizes: ['Combo'],
-    prices: { Combo: 1700 },
-    is_active: true
-  },
-  {
-    id: '56',
-    name: 'Sandwich / Fries & Cold Drink',
-    category: 'Deals',
-    sizes: ['Combo'],
-    prices: { Combo: 1300 },
-    is_active: true
-  },
-  {
-    id: '57',
-    name: 'Pizza / Cold Drink',
-    category: 'Deals',
-    sizes: ['Combo'],
-    prices: { Combo: 1350 },
-    is_active: true
-  },
-  {
-    id: '58',
-    name: 'Chicken Bread / Shake',
-    category: 'Deals',
-    sizes: ['Combo'],
-    prices: { Combo: 1200 },
-    is_active: true
-  },
-  {
-    id: '59',
-    name: 'Spaghetti / (small) Cappuccino',
-    category: 'Deals',
-    sizes: ['Combo'],
-    prices: { Combo: 1500 },
-    is_active: true
-  },
-  {
-    id: '60',
-    name: 'Spaghetti / Shake',
-    category: 'Deals',
-    sizes: ['Combo'],
-    prices: { Combo: 1500 },
-    is_active: true
-  },
-  {
-    id: '61',
-    name: 'The Classic Shami / Melt Cold Drinks',
-    category: 'Deals',
-    sizes: ['Combo'],
-    prices: { Combo: 650 },
-    is_active: true
-  },
-
-  // EXTRAS
-  {
-    id: '62',
-    name: 'Espresso Shot',
-    category: 'Extras',
-    sizes: ['Any Size'],
-    prices: { 'Any Size': 350 },
-    is_active: true
-  },
-  {
-    id: '63',
-    name: 'Flavour Syrup',
-    category: 'Extras',
-    sizes: ['Any Size'],
-    prices: { 'Any Size': 350 },
-    is_active: true
-  },
-  {
-    id: '64',
-    name: 'Whipped Cream',
-    category: 'Extras',
-    sizes: ['Any Size'],
-    prices: { 'Any Size': 350 },
-    is_active: true
-  }
-]
-
 export default function HomePage() {
   const [currentPage, setCurrentPage] = useState('pos')
   const [showReceipt, setShowReceipt] = useState(false)
+  const [showOrderHistory, setShowOrderHistory] = useState(false)
   const [completedOrder, setCompletedOrder] = useState<Order | null>(null)
   const [isInitialized, setIsInitialized] = useState(false)
   
@@ -573,7 +25,7 @@ export default function HomePage() {
     isAuthenticated, 
     staff,
     setStaff, 
-    setMenuItems,
+    loadMenuItems,
     currentView,
     selectedTable,
     setCurrentView,
@@ -601,12 +53,12 @@ export default function HomePage() {
     setIsInitialized(true)
   }, [setStaff, initializeTables, loadPersistedData])
 
-  // Load menu items
+  // Load menu items from Supabase
   useEffect(() => {
     if (isInitialized) {
-      setMenuItems(mockMenuItems)
+      loadMenuItems()
     }
-  }, [setMenuItems, isInitialized])
+  }, [loadMenuItems, isInitialized])
 
   const handleLoginSuccess = () => {
     // Login successful, component will re-render due to state change
@@ -644,6 +96,14 @@ export default function HomePage() {
     setCompletedOrder(null)
   }
 
+  const handleShowOrderHistory = () => {
+    setShowOrderHistory(true)
+  }
+
+  const handleCloseOrderHistory = () => {
+    setShowOrderHistory(false)
+  }
+
   // Show loading while initializing
   if (!isInitialized) {
     return (
@@ -661,7 +121,43 @@ export default function HomePage() {
     return (
       <>
         <LoginForm onLoginSuccess={handleLoginSuccess} />
-        <Toaster position="top-right" />
+        <Toaster 
+          position="top-right"
+          toastOptions={{
+            style: {
+              background: '#1f2937',
+              color: '#ffffff',
+              border: '1px solid #374151',
+              borderRadius: '8px',
+              fontSize: '14px',
+              fontWeight: '500',
+              padding: '12px 16px',
+              boxShadow: '0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05)',
+            },
+            success: {
+              style: {
+                background: '#065f46',
+                color: '#ffffff',
+                border: '1px solid #047857',
+              },
+              iconTheme: {
+                primary: '#10b981',
+                secondary: '#ffffff',
+              },
+            },
+            error: {
+              style: {
+                background: '#991b1b',
+                color: '#ffffff',
+                border: '1px solid #dc2626',
+              },
+              iconTheme: {
+                primary: '#ef4444',
+                secondary: '#ffffff',
+              },
+            },
+          }}
+        />
       </>
     )
   }
@@ -671,7 +167,43 @@ export default function HomePage() {
     return (
       <>
         <AdminDashboard />
-        <Toaster position="top-right" />
+        <Toaster 
+          position="top-right"
+          toastOptions={{
+            style: {
+              background: '#1f2937',
+              color: '#ffffff',
+              border: '1px solid #374151',
+              borderRadius: '8px',
+              fontSize: '14px',
+              fontWeight: '500',
+              padding: '12px 16px',
+              boxShadow: '0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05)',
+            },
+            success: {
+              style: {
+                background: '#065f46',
+                color: '#ffffff',
+                border: '1px solid #047857',
+              },
+              iconTheme: {
+                primary: '#10b981',
+                secondary: '#ffffff',
+              },
+            },
+            error: {
+              style: {
+                background: '#991b1b',
+                color: '#ffffff',
+                border: '1px solid #dc2626',
+              },
+              iconTheme: {
+                primary: '#ef4444',
+                secondary: '#ffffff',
+              },
+            },
+          }}
+        />
       </>
     )
   }
@@ -683,6 +215,7 @@ export default function HomePage() {
         onLogout={handleLogout}
         onNavigate={handleNavigate}
         currentPage={currentPage}
+        onShowOrderHistory={handleShowOrderHistory}
       />
 
       {/* Main Content */}
@@ -742,8 +275,51 @@ export default function HomePage() {
         />
       )}
 
+      {/* Order History Modal */}
+      {showOrderHistory && (
+        <OrderHistory 
+          onClose={handleCloseOrderHistory}
+        />
+      )}
+
       {/* Toast Notifications */}
-      <Toaster position="top-right" />
+      <Toaster 
+        position="top-right"
+        toastOptions={{
+          style: {
+            background: '#1f2937',
+            color: '#ffffff',
+            border: '1px solid #374151',
+            borderRadius: '8px',
+            fontSize: '14px',
+            fontWeight: '500',
+            padding: '12px 16px',
+            boxShadow: '0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05)',
+          },
+          success: {
+            style: {
+              background: '#065f46',
+              color: '#ffffff',
+              border: '1px solid #047857',
+            },
+            iconTheme: {
+              primary: '#10b981',
+              secondary: '#ffffff',
+            },
+          },
+          error: {
+            style: {
+              background: '#991b1b',
+              color: '#ffffff',
+              border: '1px solid #dc2626',
+            },
+            iconTheme: {
+              primary: '#ef4444',
+              secondary: '#ffffff',
+            },
+          },
+        }}
+      />
     </div>
   )
 }

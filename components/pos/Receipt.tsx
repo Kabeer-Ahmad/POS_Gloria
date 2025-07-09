@@ -70,7 +70,7 @@ export default function Receipt({ order, onClose }: ReceiptProps) {
     }
   }
 
-  const handleThermalPrint = () => {
+  const handleThermalPrint = async () => {
     // Generate thermal receipt format
     let receiptText = ''
     receiptText += '================================\n'
@@ -102,12 +102,98 @@ export default function Receipt({ order, onClose }: ReceiptProps) {
     receiptText += '   Gloria Jean\'s Coffees POS   \n'
     receiptText += '================================\n'
 
-    // Copy to clipboard for thermal printer
-    navigator.clipboard.writeText(receiptText).then(() => {
+    try {
+      // Try direct thermal printer connection first
+      const success = await printToThermalPrinter(receiptText)
+      if (success) {
+        toast.success('Receipt sent to thermal printer successfully!')
+        return
+      }
+    } catch {
+      console.log('Direct printing failed, falling back to clipboard')
+    }
+
+    // Fallback to clipboard if direct printing fails
+    try {
+      await navigator.clipboard.writeText(receiptText)
       toast.success('Receipt copied to clipboard - paste to thermal printer software')
-    }).catch(() => {
+    } catch {
       toast.error('Failed to copy receipt text')
-    })
+    }
+  }
+
+  // Function to print directly to thermal printer
+  const printToThermalPrinter = async (text: string): Promise<boolean> => {
+    try {
+      // Check if Web USB is supported
+      if (!('usb' in navigator)) {
+        throw new Error('Web USB not supported')
+      }
+
+      // Request USB device (thermal printer)
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      const device = await (navigator as Navigator & { usb: any }).usb.requestDevice({
+        filters: [
+          // Common thermal printer vendor IDs
+          { vendorId: 0x0483 }, // STMicroelectronics
+          { vendorId: 0x04b8 }, // Epson
+          { vendorId: 0x0416 }, // WinChipHead
+          { vendorId: 0x0525 }, // PLX Technology
+          { vendorId: 0x067b }, // Prolific Technology
+          { vendorId: 0x0405 }, // PowerVR
+          { vendorId: 0x0483 }, // STMicroelectronics
+          { vendorId: 0x04cc }, // NXP Semiconductors
+        ]
+      })
+
+      await device.open()
+      await device.selectConfiguration(1)
+      await device.claimInterface(0)
+
+      // Convert text to ESC/POS commands
+      const commands = new Uint8Array([
+        // Initialize printer
+        0x1B, 0x40, // ESC @
+        // Set text alignment to center
+        0x1B, 0x61, 0x01, // ESC a 1
+        // Set font size
+        0x1B, 0x21, 0x00, // ESC ! 0
+        // Print text
+        ...new TextEncoder().encode(text),
+        // Cut paper
+        0x1D, 0x56, 0x00, // GS V 0
+        // Feed paper
+        0x0A, 0x0A, 0x0A, // LF LF LF
+      ])
+
+      // Send data to printer
+      await device.transferOut(1, commands)
+      
+      await device.close()
+      return true
+    } catch (error) {
+      console.error('Thermal printer error:', error)
+      
+      // Try alternative method using Web Serial API
+      try {
+        if ('serial' in navigator) {
+          // eslint-disable-next-line @typescript-eslint/no-explicit-any
+          const port = await (navigator as Navigator & { serial: any }).serial.requestPort()
+          await port.open({ baudRate: 9600 })
+          
+          const writer = port.writable.getWriter()
+          const encoder = new TextEncoder()
+          await writer.write(encoder.encode(text))
+          await writer.close()
+          await port.close()
+          return true
+        }
+      } catch (serialError) {
+        console.error('Serial printer error:', serialError)
+      }
+      
+      return false
+    }
   }
 
   return (

@@ -141,7 +141,7 @@ export default function LoginForm({ onLoginSuccess }: LoginFormProps) {
 
         {/* Footer */}
         <div className="text-center mt-6 text-gray-400 text-sm">
-          Gloria Jean&apos;s Coffees POS v1.0
+          Gloria Jean&apos;s Coffees POS v2.1
         </div>
       </div>
     </div>

@@ -311,25 +311,41 @@ export default function Reports() {
       </div>
 
       {/* Tab Navigation */}
-      <div className="flex space-x-1 bg-gray-100 dark:bg-gray-700 rounded-lg p-1">
-        {[
-          { key: 'overview', label: 'Overview', icon: TrendingUp },
-          { key: 'orders', label: 'Order List', icon: ShoppingCart },
-          { key: 'analytics', label: 'Analytics', icon: BarChart }
-        ].map(({ key, label, icon: Icon }) => (
-          <button
-            key={key}
-            onClick={() => setActiveTab(key as 'overview' | 'orders' | 'analytics')}
-            className={`flex items-center gap-2 px-4 py-2 rounded-md text-sm font-medium transition-colors flex-1 justify-center ${
-              activeTab === key
-                ? 'bg-white dark:bg-gray-600 text-gray-900 dark:text-white shadow-sm'
-                : 'text-white dark:text-white hover:text-gray-900 dark:hover:text-white'
-            }`}
+      <div className="bg-gray-100 dark:bg-gray-700 rounded-lg p-1">
+        {/* Mobile: Dropdown for tabs */}
+        <div className="sm:hidden mb-3">
+          <select
+            value={activeTab}
+            onChange={(e) => setActiveTab(e.target.value as 'overview' | 'orders' | 'analytics')}
+            className="w-full px-3 py-2 text-sm bg-white dark:bg-gray-600 text-gray-900 dark:text-white rounded-md border border-gray-300 dark:border-gray-600"
           >
-            <Icon className="h-4 w-4" />
-            {label}
-          </button>
-        ))}
+            <option value="overview">Overview</option>
+            <option value="orders">Order List</option>
+            <option value="analytics">Analytics</option>
+          </select>
+        </div>
+
+        {/* Desktop: Tab buttons */}
+        <div className="hidden sm:flex space-x-1">
+          {[
+            { key: 'overview', label: 'Overview', icon: TrendingUp },
+            { key: 'orders', label: 'Order List', icon: ShoppingCart },
+            { key: 'analytics', label: 'Analytics', icon: BarChart }
+          ].map(({ key, label, icon: Icon }) => (
+            <button
+              key={key}
+              onClick={() => setActiveTab(key as 'overview' | 'orders' | 'analytics')}
+              className={`flex items-center gap-2 px-4 py-2 rounded-md text-sm font-medium transition-colors flex-1 justify-center ${
+                activeTab === key
+                  ? 'bg-white dark:bg-gray-600 text-gray-900 dark:text-white shadow-sm'
+                  : 'text-gray-600 dark:text-gray-300 hover:text-gray-900 dark:hover:text-white'
+              }`}
+            >
+              <Icon className="h-4 w-4" />
+              <span className="hidden md:inline">{label}</span>
+            </button>
+          ))}
+        </div>
       </div>
 
       {/* Loading State */}

@@ -1,6 +1,8 @@
 import { create } from 'zustand'
 import { persist, createJSONStorage } from 'zustand/middleware'
 import { Staff } from './auth'
+import { supabase } from './supabase'
+import toast from 'react-hot-toast'
 
 export interface MenuItem {
   id: string
@@ -97,10 +99,11 @@ interface PosStore {
   saveToSupabase: (order: Order) => Promise<boolean>
 
   // Menu Management Functions
-  addMenuItem: (item: MenuItem) => void
-  updateMenuItem: (id: string, updates: Partial<MenuItem>) => void
-  deleteMenuItem: (id: string) => void
-  toggleItemAvailability: (id: string) => void
+  loadMenuItems: () => Promise<void>
+  addMenuItem: (item: MenuItem) => Promise<boolean>
+  updateMenuItem: (id: string, updates: Partial<MenuItem>) => Promise<boolean>
+  deleteMenuItem: (id: string) => Promise<boolean>
+  toggleItemAvailability: (id: string) => Promise<boolean>
 
   // Save completed order for reporting
   saveCompletedOrder: (order: Order) => void
@@ -632,32 +635,212 @@ export const usePosStore = create<PosStore>()(
       },
 
       // Menu Management Functions
-      addMenuItem: (item: MenuItem) => {
-        set((state) => ({
-          menuItems: [...state.menuItems, item]
-        }))
+      loadMenuItems: async () => {
+        try {
+          if (process.env.NEXT_PUBLIC_SUPABASE_URL && process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY) {
+            const { data: menuItems, error } = await supabase
+              .from('menu_items')
+              .select('*')
+              .order('name')
+
+            if (error) {
+              console.error('Error loading menu items from Supabase:', error)
+              toast.error('Failed to load menu items from database')
+              return
+            }
+
+            console.log('Loaded menu items from Supabase:', menuItems?.length || 0)
+            
+            // Convert to our format and update state
+            const convertedItems: MenuItem[] = (menuItems || []).map(item => ({
+              id: item.id,
+              name: item.name,
+              category: item.category,
+              sizes: item.sizes || [],
+              prices: item.prices || {},
+              description: item.description || '',
+              image_url: item.image_url || '',
+              is_active: item.is_active
+            }))
+
+            // Update both menu items and categories
+            const categories = ['All', ...new Set(convertedItems.map(item => item.category))]
+            set({ 
+              menuItems: convertedItems,
+              categories,
+              selectedCategory: get().selectedCategory === '' ? 'All' : get().selectedCategory
+            })
+          } else {
+            console.warn('Supabase not configured, cannot load menu items')
+          }
+        } catch (error) {
+          console.error('Error loading menu items:', error)
+          toast.error('Failed to load menu items')
+        }
       },
 
-      updateMenuItem: (id: string, updates: Partial<MenuItem>) => {
-        set((state) => ({
-          menuItems: state.menuItems.map(item => 
-            item.id === id ? { ...item, ...updates } : item
-          )
-        }))
+      addMenuItem: async (item: MenuItem) => {
+        try {
+          // Save to Supabase first
+          if (process.env.NEXT_PUBLIC_SUPABASE_URL && process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY) {
+            const { data: supabaseItem, error } = await supabase
+              .from('menu_items')
+              .insert({
+                name: item.name,
+                category: item.category,
+                sizes: item.sizes,
+                prices: item.prices,
+                description: item.description || null,
+                image_url: item.image_url || null,
+                is_active: item.is_active
+              })
+              .select()
+              .single()
+
+            if (error) {
+              console.error('Error saving menu item to Supabase:', error)
+              toast.error('Failed to save menu item to database')
+              return false // Don't add to local state if Supabase fails
+            } else {
+              console.log('Menu item saved to Supabase:', supabaseItem)
+              // Use the Supabase ID
+              item.id = supabaseItem.id
+              
+              // Only add to local state if successfully saved to Supabase
+              set((state) => ({
+                menuItems: [...state.menuItems, item]
+              }))
+              return true
+            }
+          } else {
+            console.warn('Supabase not configured, cannot save menu item')
+            toast.error('Database not configured')
+            return false
+          }
+        } catch (error) {
+          console.error('Error in addMenuItem:', error)
+          toast.error('Failed to save menu item')
+          return false
+        }
       },
 
-      deleteMenuItem: (id: string) => {
-        set((state) => ({
-          menuItems: state.menuItems.filter(item => item.id !== id)
-        }))
+      updateMenuItem: async (id: string, updates: Partial<MenuItem>) => {
+        try {
+          // Update in Supabase first
+          if (process.env.NEXT_PUBLIC_SUPABASE_URL && process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY) {
+            const { error } = await supabase
+              .from('menu_items')
+              .update({
+                name: updates.name,
+                category: updates.category,
+                sizes: updates.sizes,
+                prices: updates.prices,
+                description: updates.description || null,
+                image_url: updates.image_url || null,
+                is_active: updates.is_active
+              })
+              .eq('id', id)
+
+            if (error) {
+              console.error('Error updating menu item in Supabase:', error)
+              toast.error('Failed to update menu item in database')
+              return false
+            } else {
+              console.log('Menu item updated in Supabase:', id)
+              
+              // Only update local state if successfully updated in Supabase
+              set((state) => ({
+                menuItems: state.menuItems.map(item => 
+                  item.id === id ? { ...item, ...updates } : item
+                )
+              }))
+              return true
+            }
+          } else {
+            console.warn('Supabase not configured, cannot update menu item')
+            toast.error('Database not configured')
+            return false
+          }
+        } catch (error) {
+          console.error('Error in updateMenuItem:', error)
+          toast.error('Failed to update menu item')
+          return false
+        }
       },
 
-      toggleItemAvailability: (id: string) => {
-        set((state) => ({
-          menuItems: state.menuItems.map(item =>
-            item.id === id ? { ...item, is_active: !item.is_active } : item
-          )
-        }))
+      deleteMenuItem: async (id: string) => {
+        try {
+          // Delete from Supabase first
+          if (process.env.NEXT_PUBLIC_SUPABASE_URL && process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY) {
+            const { error } = await supabase
+              .from('menu_items')
+              .delete()
+              .eq('id', id)
+
+            if (error) {
+              console.error('Error deleting menu item from Supabase:', error)
+              toast.error('Failed to delete menu item from database')
+              return false
+            } else {
+              console.log('Menu item deleted from Supabase:', id)
+              
+              // Only remove from local state if successfully deleted from Supabase
+              set((state) => ({
+                menuItems: state.menuItems.filter(item => item.id !== id)
+              }))
+              return true
+            }
+          } else {
+            console.warn('Supabase not configured, cannot delete menu item')
+            toast.error('Database not configured')
+            return false
+          }
+        } catch (error) {
+          console.error('Error in deleteMenuItem:', error)
+          toast.error('Failed to delete menu item')
+          return false
+        }
+      },
+
+      toggleItemAvailability: async (id: string) => {
+        const currentItem = get().menuItems.find(item => item.id === id)
+        if (!currentItem) return false
+
+        const newStatus = !currentItem.is_active
+
+        try {
+          // Update in Supabase first
+          if (process.env.NEXT_PUBLIC_SUPABASE_URL && process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY) {
+            const { error } = await supabase
+              .from('menu_items')
+              .update({ is_active: newStatus })
+              .eq('id', id)
+
+            if (error) {
+              console.error('Error toggling menu item availability in Supabase:', error)
+              toast.error('Failed to update item availability in database')
+              return false
+            } else {
+              console.log('Menu item availability updated in Supabase:', id, newStatus)
+              
+              // Only update local state if successfully updated in Supabase
+              set((state) => ({
+                menuItems: state.menuItems.map(item =>
+                  item.id === id ? { ...item, is_active: newStatus } : item
+                )
+              }))
+              return true
+            }
+          } else {
+            console.warn('Supabase not configured, cannot toggle item availability')
+            toast.error('Database not configured')
+            return false
+          }
+        } catch (error) {
+          console.error('Error in toggleItemAvailability:', error)
+          toast.error('Failed to update item availability')
+          return false
+        }
       },
 
       // Save completed order for reporting

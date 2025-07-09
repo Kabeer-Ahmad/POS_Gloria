@@ -15,6 +15,26 @@ export default function MenuGrid() {
     ? menuItems 
     : menuItems.filter(item => item.category === selectedCategory)
 
+  // Categories that should show extras (coffees, drinks, smoothies)
+  const categoriesWithExtras = [
+    'Espresso - Classics',
+    'Espresso - Specialties',
+    'Tea',
+    'Hot Chocolate',
+    'Chillers - Espresso',
+    'Chillers - Mocha',
+    'Chillers - Gourmet Iced',
+    'Chillers - Fruit',
+    'Smoothies',
+    'Over Ice',
+    'Beverages'
+  ]
+
+  // Check if an item should show extras
+  const shouldShowExtras = (item: MenuItem) => {
+    return categoriesWithExtras.includes(item.category)
+  }
+
   const handleAddToTable = (item: MenuItem) => {
     if (!selectedTable) {
       toast.error('Please select a table first')
@@ -64,17 +84,17 @@ export default function MenuGrid() {
     return `Rs. ${price.toFixed(2)}`
   }
 
-  // Available extras for all items
-  const availableExtras = ['Espresso Shot', 'Flavour Syrup', 'Whipped Cream']
+  // Available extras for drinks and coffees
+  const availableExtras = ['Espresso Shot', 'Flavour Syrup', 'Whipped Cream', 'Ice-Cream']
 
   return (
     <div className="h-full overflow-hidden flex flex-col">
       {/* Category Header */}
-      <div className="p-4 lg:p-6 border-b border-gray-700 bg-gradient-to-r from-gray-800 to-gray-700">
-        <h2 className="text-xl lg:text-2xl font-bold text-white animate-slideDown">
+      <div className="p-3 lg:p-4 border-b border-gray-700 bg-gradient-to-r from-gray-800 to-gray-700">
+        <h2 className="text-lg lg:text-xl font-bold text-white animate-slideDown">
           {selectedCategory || 'All Items'}
         </h2>
-        <p className="text-sm text-gray-300 mt-1 animate-slideDown" style={{ animationDelay: '100ms' }}>
+        <p className="text-xs text-gray-300 mt-0.5 animate-slideDown" style={{ animationDelay: '100ms' }}>
           {filteredItems.length} items available
         </p>
       </div>
@@ -132,27 +152,29 @@ export default function MenuGrid() {
                   </div>
                 </div>
 
-                {/* Extras Selection */}
-                <div className="mb-4">
-                  <label className="block text-sm font-medium text-white mb-2">
-                    Extras (Rs. 350 each)
-                  </label>
-                  <div className="grid grid-cols-1 gap-2">
-                    {availableExtras.map((extra: string) => (
-                      <button
-                        key={extra}
-                        onClick={() => toggleExtra(item.id, extra)}
-                        className={`p-2 rounded-lg border-2 text-sm transition-all transform hover:scale-105 ${
-                          selectedExtras[item.id]?.includes(extra)
-                            ? 'border-green-500 bg-green-900 text-white shadow-md'
-                            : 'border-gray-600 hover:border-gray-500 text-white bg-gray-700'
-                        }`}
-                      >
-                        {extra}
-                      </button>
-                    ))}
+                {/* Extras Selection - Only for drinks and coffees */}
+                {shouldShowExtras(item) && (
+                  <div className="mb-4">
+                    <label className="block text-sm font-medium text-white mb-2">
+                      Extras (Rs. 350 each)
+                    </label>
+                    <div className="grid grid-cols-1 gap-2">
+                      {availableExtras.map((extra: string) => (
+                        <button
+                          key={extra}
+                          onClick={() => toggleExtra(item.id, extra)}
+                          className={`p-2 rounded-lg border-2 text-sm transition-all transform hover:scale-105 ${
+                            selectedExtras[item.id]?.includes(extra)
+                              ? 'border-green-500 bg-green-900 text-white shadow-md'
+                              : 'border-gray-600 hover:border-gray-500 text-white bg-gray-700'
+                          }`}
+                        >
+                          {extra}
+                        </button>
+                      ))}
+                    </div>
                   </div>
-                </div>
+                )}
 
                 {/* Price Display */}
                 <div className="mb-4">

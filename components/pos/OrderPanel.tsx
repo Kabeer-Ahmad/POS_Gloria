@@ -1,7 +1,7 @@
 'use client'
 
 import { useState } from 'react'
-import { Trash2, Minus, Plus, ShoppingBag, CreditCard, DollarSign, Printer, Lock } from 'lucide-react'
+import { Trash2, Minus, Plus, ShoppingBag, CreditCard, DollarSign, Printer, Download, Lock } from 'lucide-react'
 import { usePosStore, useTableCart, useTableOrder, calculateGST, Order } from '@/lib/store'
 import AdminPasswordPrompt from '@/components/auth/AdminPasswordPrompt'
 import toast from 'react-hot-toast'
@@ -231,6 +231,133 @@ export default function OrderPanel({ onPaymentComplete }: OrderPanelProps) {
     printWindow.document.close()
   }
 
+  const handleThermalPrintBill = async () => {
+    // Generate thermal receipt format for current bill
+    let receiptText = ''
+    receiptText += '================================\n'
+    receiptText += '     GLORIA JEAN\'S COFFEES     \n'
+    receiptText += '        Point of Sale          \n'
+    receiptText += '================================\n'
+    receiptText += `Table: ${selectedTable}\n`
+    receiptText += `Order: ${currentOrder.orderNumber}\n`
+    receiptText += `Date: ${new Date().toLocaleDateString()}\n`
+    receiptText += `Time: ${new Date().toLocaleTimeString()}\n`
+    receiptText += `Staff: ${staff?.email || 'Unknown'}\n`
+    receiptText += '--------------------------------\n'
+    
+    cartItems.forEach((item) => {
+      receiptText += `${item.menuItem.name}\n`
+      receiptText += `  ${item.size} x${item.quantity}\n`
+      if (item.extras.length > 0) {
+        receiptText += `  Extras: ${item.extras.join(', ')}\n`
+      }
+      receiptText += `  ${item.totalPrice.toFixed(2)}\n`
+      receiptText += '\n'
+    })
+    
+    receiptText += '--------------------------------\n'
+    receiptText += `Subtotal:     ${currentOrder.subtotal.toFixed(2)}\n`
+    receiptText += `GST (${paymentMethod === 'cash' ? '16%' : '5%'}):       ${gstAmount.toFixed(2)}\n`
+    receiptText += `TOTAL:        ${total.toFixed(2)}\n`
+    receiptText += '================================\n'
+    receiptText += '     Thank you for visiting!    \n'
+    receiptText += '   Gloria Jean\'s Coffees POS   \n'
+    receiptText += '================================\n'
+
+    try {
+      // Try direct thermal printer connection first
+      const success = await printToThermalPrinter(receiptText)
+      if (success) {
+        toast.success('Bill sent to thermal printer successfully!')
+        return
+      }
+    } catch {
+      console.log('Direct printing failed, falling back to clipboard')
+    }
+
+    // Fallback to clipboard if direct printing fails
+    try {
+      await navigator.clipboard.writeText(receiptText)
+      toast.success('Bill copied to clipboard - paste to thermal printer software')
+    } catch {
+      toast.error('Failed to copy bill text')
+    }
+  }
+
+  // Function to print directly to thermal printer
+  const printToThermalPrinter = async (text: string): Promise<boolean> => {
+    try {
+      // Check if Web USB is supported
+      if (!('usb' in navigator)) {
+        throw new Error('Web USB not supported')
+      }
+
+      // Request USB device (thermal printer)
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      const device = await (navigator as Navigator & { usb: any }).usb.requestDevice({
+        filters: [
+          // Common thermal printer vendor IDs
+          { vendorId: 0x0483 }, // STMicroelectronics
+          { vendorId: 0x04b8 }, // Epson
+          { vendorId: 0x0416 }, // WinChipHead
+          { vendorId: 0x0525 }, // PLX Technology
+          { vendorId: 0x067b }, // Prolific Technology
+          { vendorId: 0x0405 }, // PowerVR
+          { vendorId: 0x0483 }, // STMicroelectronics
+          { vendorId: 0x04cc }, // NXP Semiconductors
+        ]
+      })
+
+      await device.open()
+      await device.selectConfiguration(1)
+      await device.claimInterface(0)
+
+      // Convert text to ESC/POS commands
+      const commands = new Uint8Array([
+        // Initialize printer
+        0x1B, 0x40, // ESC @
+        // Set text alignment to center
+        0x1B, 0x61, 0x01, // ESC a 1
+        // Set font size
+        0x1B, 0x21, 0x00, // ESC ! 0
+        // Print text
+        ...new TextEncoder().encode(text),
+        // Cut paper
+        0x1D, 0x56, 0x00, // GS V 0
+        // Feed paper
+        0x0A, 0x0A, 0x0A, // LF LF LF
+      ])
+
+      // Send data to printer
+      await device.transferOut(1, commands)
+      
+      await device.close()
+      return true
+    } catch (error) {
+      console.error('Thermal printer error:', error)
+      
+      // Try alternative method using Web Serial API
+      try {
+        if ('serial' in navigator) {
+          // eslint-disable-next-line @typescript-eslint/no-explicit-any
+          const port = await (navigator as Navigator & { serial: any }).serial.requestPort()
+          await port.open({ baudRate: 9600 })
+          
+          const writer = port.writable.getWriter()
+          const encoder = new TextEncoder()
+          await writer.write(encoder.encode(text))
+          await writer.close()
+          await port.close()
+          return true
+        }
+      } catch (serialError) {
+        console.error('Serial printer error:', serialError)
+      }
+      
+      return false
+    }
+  }
+
   return (
     <>
       {/* Desktop Order Panel */}
@@ -240,13 +367,20 @@ export default function OrderPanel({ onPaymentComplete }: OrderPanelProps) {
           <div className="p-2">
             <div className="flex items-center justify-between mb-3">
               <h2 className="text-xl font-bold text-white">Table {selectedTable}</h2>
-              <div className="flex gap-4">
+              <div className="flex gap-2">
                 <button
                   onClick={handlePrintBill}
                   className="p-2 text-white hover:text-amber-400 hover:bg-gray-700 rounded-lg transition-all duration-200"
-                  title="Print Bill"
+                  title="Print Bill (A4)"
                 >
                   <Printer className="h-5 w-5" />
+                </button>
+                <button
+                  onClick={handleThermalPrintBill}
+                  className="p-2 text-white hover:text-green-400 hover:bg-gray-700 rounded-lg transition-all duration-200"
+                  title="Thermal Print Bill"
+                >
+                  <Download className="h-5 w-5" />
                 </button>
                 {staff?.role !== 'admin' && (
                   <div className="flex items-center text-amber-400" title="Admin features restricted">
@@ -637,16 +771,25 @@ export default function OrderPanel({ onPaymentComplete }: OrderPanelProps) {
                   onClick={handlePrintBill}
                   className="px-4 py-3 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors"
                   disabled={isProcessing}
+                  title="Print Bill (A4)"
                 >
                   <Printer className="h-5 w-5" />
                 </button>
                 <button
-                  onClick={handlePayment}
-                  className="flex-1 py-3 px-4 bg-green-600 text-white rounded-lg hover:bg-green-700 transition-colors disabled:opacity-50"
+                  onClick={handleThermalPrintBill}
+                  className="px-4 py-3 bg-gray-600 text-white rounded-lg hover:bg-gray-700 transition-colors"
                   disabled={isProcessing}
+                  title="Thermal Print Bill"
                 >
-                  {isProcessing ? 'Processing...' : 'Confirm Payment'}
+                  <Download className="h-5 w-5" />
                 </button>
+                                  <button
+                    onClick={handlePayment}
+                    className="flex-1 py-3 px-4 bg-green-600 text-white rounded-lg hover:bg-green-700 transition-colors disabled:opacity-50"
+                    disabled={isProcessing}
+                  >
+                    {isProcessing ? 'Processing...' : 'Confirm Payment'}
+                  </button>
               </div>
             </div>
           </div>
