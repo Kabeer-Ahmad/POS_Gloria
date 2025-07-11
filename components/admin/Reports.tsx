@@ -37,12 +37,22 @@ interface OrderItem {
   extras_cost: number
 }
 
-
+interface MenuItem {
+  id: string
+  name: string
+  category: string
+  sizes: string[]
+  prices: Record<string, number>
+  description?: string
+  image_url?: string
+  is_active: boolean
+}
 
 export default function Reports() {
   const [activeTab, setActiveTab] = useState<'overview' | 'orders' | 'analytics'>('overview')
   const [orders, setOrders] = useState<OrderData[]>([])
   const [filteredOrders, setFilteredOrders] = useState<OrderData[]>([])
+  const [menuItems, setMenuItems] = useState<MenuItem[]>([])
   const [isLoading, setIsLoading] = useState(false)
   const [selectedOrder, setSelectedOrder] = useState<OrderData | null>(null)
   
@@ -53,7 +63,7 @@ export default function Reports() {
   const [searchQuery, setSearchQuery] = useState('')
 
   useEffect(() => {
-    loadOrders()
+    loadData()
   }, [])
 
   useEffect(() => {
@@ -61,10 +71,11 @@ export default function Reports() {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [orders, dateFilter, paymentFilter, statusFilter, searchQuery])
 
-  const loadOrders = async () => {
+  const loadData = async () => {
     setIsLoading(true)
     try {
-      const { data: ordersData, error } = await supabase
+      // Load orders with order items
+      const { data: ordersData, error: ordersError } = await supabase
         .from('orders')
         .select(`
           *,
@@ -72,16 +83,29 @@ export default function Reports() {
         `)
         .order('created_at', { ascending: false })
 
-      if (error) {
-        console.error('Error fetching orders:', error)
+      if (ordersError) {
+        console.error('Error fetching orders:', ordersError)
         toast.error('Failed to load orders from database')
         return
       }
 
+      // Load menu items for category mapping
+      const { data: menuItemsData, error: menuError } = await supabase
+        .from('menu_items')
+        .select('*')
+        .eq('is_active', true)
+
+      if (menuError) {
+        console.error('Error fetching menu items:', menuError)
+        toast.error('Failed to load menu items from database')
+        return
+      }
+
       setOrders(ordersData || [])
+      setMenuItems(menuItemsData || [])
     } catch (error) {
-      console.error('Error loading orders:', error)
-      toast.error('Failed to load orders')
+      console.error('Error loading data:', error)
+      toast.error('Failed to load data')
     } finally {
       setIsLoading(false)
     }
@@ -151,6 +175,29 @@ export default function Reports() {
     return new Date(dateString).toLocaleString()
   }
 
+  // Helper function to get category for a menu item
+  const getCategoryForMenuItem = (menuItemName: string): string => {
+    // First try exact match
+    let menuItem = menuItems.find(item => item.name === menuItemName)
+    
+    // If no exact match, try case-insensitive match
+    if (!menuItem) {
+      menuItem = menuItems.find(item => 
+        item.name.toLowerCase() === menuItemName.toLowerCase()
+      )
+    }
+    
+    // If still no match, try partial match (for items with slight name variations)
+    if (!menuItem) {
+      menuItem = menuItems.find(item => 
+        item.name.toLowerCase().includes(menuItemName.toLowerCase()) ||
+        menuItemName.toLowerCase().includes(item.name.toLowerCase())
+      )
+    }
+    
+    return menuItem?.category || 'Unknown Category'
+  }
+
   // Calculate analytics
   const totalRevenue = filteredOrders.reduce((sum, order) => sum + order.total, 0)
   const totalOrders = filteredOrders.length
@@ -160,8 +207,6 @@ export default function Reports() {
     cash: filteredOrders.filter(o => o.payment_method === 'cash').length,
     card: filteredOrders.filter(o => o.payment_method === 'card').length
   }
-
-
 
   // Top selling items analytics
   const itemSales = filteredOrders.reduce((acc, order) => {
@@ -178,6 +223,30 @@ export default function Reports() {
   const topItems = Object.entries(itemSales)
     .map(([name, data]) => ({ name, ...data }))
     .sort((a, b) => b.quantity - a.quantity)
+    .slice(0, 10)
+
+  // Category-based analytics
+  const categorySales = filteredOrders.reduce((acc, order) => {
+    order.order_items?.forEach(item => {
+      const category = getCategoryForMenuItem(item.menu_item_name)
+      if (!acc[category]) {
+        acc[category] = { quantity: 0, revenue: 0, orders: new Set() }
+      }
+      acc[category].quantity += item.quantity
+      acc[category].revenue += item.total_price
+      acc[category].orders.add(order.id)
+    })
+    return acc
+  }, {} as Record<string, { quantity: number, revenue: number, orders: Set<string> }>)
+
+  const topCategories = Object.entries(categorySales)
+    .map(([category, data]) => ({ 
+      category, 
+      quantity: data.quantity, 
+      revenue: data.revenue,
+      orderCount: data.orders.size
+    }))
+    .sort((a, b) => b.revenue - a.revenue)
     .slice(0, 10)
 
   // Daily sales data
@@ -220,7 +289,7 @@ export default function Reports() {
           
           <div className="flex items-center gap-3">
             <button
-              onClick={loadOrders}
+              onClick={loadData}
               className="flex items-center gap-2 px-4 py-2 bg-amber-600 text-white rounded-lg hover:bg-amber-700 transition-colors"
             >
               <RefreshCw className="h-4 w-4" />
@@ -435,8 +504,32 @@ export default function Reports() {
                 </div>
               </div>
 
+              {/* Top Categories */}
+              <div className="bg-white dark:bg-gray-800 rounded-xl p-6 shadow-sm border border-gray-200 dark:border-gray-700">
+                <h3 className="text-lg font-semibold text-gray-900 dark:text-white mb-4">Top Categories by Revenue</h3>
+                <div className="space-y-3">
+                  {topCategories.slice(0, 5).map((category, index) => (
+                    <div key={category.category} className="flex items-center justify-between p-3 bg-gray-50 dark:bg-gray-700 rounded-lg">
+                      <div className="flex items-center gap-3">
+                        <div className="w-8 h-8 bg-purple-100 dark:bg-purple-900 rounded-full flex items-center justify-center">
+                          <span className="text-sm font-bold text-purple-600 dark:text-purple-400">{index + 1}</span>
+                        </div>
+                        <div>
+                          <p className="font-medium text-gray-900 dark:text-white">{category.category}</p>
+                          <p className="text-sm text-gray-600 dark:text-gray-400">{category.orderCount} orders</p>
+                        </div>
+                      </div>
+                      <div className="text-right">
+                        <p className="font-bold text-gray-900 dark:text-white">{formatPrice(category.revenue)}</p>
+                        <p className="text-sm text-gray-600 dark:text-gray-400">{category.quantity} items</p>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              </div>
+
               {/* Top Items */}
-              <div className="bg-white dark:bg-gray-800 rounded-xl p-6 shadow-sm border border-gray-200 dark:border-gray-700 lg:col-span-2">
+              <div className="bg-white dark:bg-gray-800 rounded-xl p-6 shadow-sm border border-gray-200 dark:border-gray-700">
                 <h3 className="text-lg font-semibold text-gray-900 dark:text-white mb-4">Top Selling Items</h3>
                 <div className="space-y-3">
                   {topItems.slice(0, 5).map((item: { name: string; quantity: number; revenue: number }, index: number) => (
@@ -573,6 +666,45 @@ export default function Reports() {
                 </div>
               </div>
 
+              {/* Category Revenue Chart */}
+              <div className="lg:col-span-2 bg-white dark:bg-gray-800 rounded-xl p-6 shadow-sm border border-gray-200 dark:border-gray-700">
+                <h3 className="text-lg font-semibold text-gray-900 dark:text-white mb-4">Revenue by Category</h3>
+                <div className="h-80">
+                  <ResponsiveContainer width="100%" height="100%">
+                    <BarChart data={topCategories}>
+                      <CartesianGrid strokeDasharray="3 3" stroke="#374151" />
+                      <XAxis 
+                        dataKey="category" 
+                        stroke="#9CA3AF"
+                        fontSize={10}
+                        angle={-45}
+                        textAnchor="end"
+                        height={80}
+                      />
+                      <YAxis 
+                        stroke="#9CA3AF"
+                        fontSize={12}
+                        tickFormatter={(value) => `Rs. ${value}`}
+                      />
+                      <Tooltip 
+                        contentStyle={{ 
+                          backgroundColor: '#1F2937', 
+                          border: 'none', 
+                          borderRadius: '8px',
+                          color: '#F9FAFB'
+                        }}
+                        formatter={(value: number) => [formatPrice(value), 'Revenue']}
+                      />
+                      <Bar 
+                        dataKey="revenue" 
+                        fill={chartColors.tertiary}
+                        radius={[4, 4, 0, 0]}
+                      />
+                    </BarChart>
+                  </ResponsiveContainer>
+                </div>
+              </div>
+
               {/* Payment Methods Pie Chart */}
               <div className="bg-white dark:bg-gray-800 rounded-xl p-6 shadow-sm border border-gray-200 dark:border-gray-700">
                 <h3 className="text-lg font-semibold text-gray-900 dark:text-white mb-4">Payment Methods</h3>
@@ -603,29 +735,42 @@ export default function Reports() {
                 </div>
               </div>
 
-              {/* Payment Revenue */}
-              <div className="lg:col-span-2 bg-white dark:bg-gray-800 rounded-xl p-6 shadow-sm border border-gray-200 dark:border-gray-700">
-                <h3 className="text-lg font-semibold text-gray-900 dark:text-white mb-4">Revenue by Payment Method</h3>
-                <div className="space-y-4">
-                  <div className="flex items-center justify-between p-4 bg-green-50 dark:bg-green-900/20 rounded-lg">
-                    <div>
-                      <p className="font-medium text-gray-900 dark:text-white">Cash Payments</p>
-                      <p className="text-sm text-gray-600 dark:text-gray-400">{paymentMethodStats.cash} orders</p>
-                    </div>
-                    <p className="text-xl font-bold text-green-600 dark:text-green-400">
-                      {formatPrice(filteredOrders.filter(o => o.payment_method === 'cash').reduce((sum, order) => sum + order.total, 0))}
-                    </p>
-                  </div>
-
-                  <div className="flex items-center justify-between p-4 bg-blue-50 dark:bg-blue-900/20 rounded-lg">
-                    <div>
-                      <p className="font-medium text-gray-900 dark:text-white">Card Payments</p>
-                      <p className="text-sm text-gray-600 dark:text-gray-400">{paymentMethodStats.card} orders</p>
-                    </div>
-                    <p className="text-xl font-bold text-blue-600 dark:text-blue-400">
-                      {formatPrice(filteredOrders.filter(o => o.payment_method === 'card').reduce((sum, order) => sum + order.total, 0))}
-                    </p>
-                  </div>
+              {/* Category Details */}
+              <div className="lg:col-span-3 bg-white dark:bg-gray-800 rounded-xl p-6 shadow-sm border border-gray-200 dark:border-gray-700">
+                <h3 className="text-lg font-semibold text-gray-900 dark:text-white mb-4">Category Performance Details</h3>
+                <div className="overflow-x-auto">
+                  <table className="w-full">
+                    <thead>
+                      <tr className="border-b border-gray-200 dark:border-gray-700">
+                        <th className="text-left py-3 px-4 font-medium text-gray-600 dark:text-gray-400">Category</th>
+                        <th className="text-left py-3 px-4 font-medium text-gray-600 dark:text-gray-400">Orders</th>
+                        <th className="text-left py-3 px-4 font-medium text-gray-600 dark:text-gray-400">Items Sold</th>
+                        <th className="text-left py-3 px-4 font-medium text-gray-600 dark:text-gray-400">Revenue</th>
+                        <th className="text-left py-3 px-4 font-medium text-gray-600 dark:text-gray-400">Avg Revenue/Order</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      {topCategories.map((category) => (
+                        <tr key={category.category} className="border-b border-gray-100 dark:border-gray-700 hover:bg-gray-50 dark:hover:bg-gray-700">
+                          <td className="py-3 px-4">
+                            <p className="font-medium text-gray-900 dark:text-white">{category.category}</p>
+                          </td>
+                          <td className="py-3 px-4 text-gray-600 dark:text-gray-400">
+                            {category.orderCount}
+                          </td>
+                          <td className="py-3 px-4 text-gray-600 dark:text-gray-400">
+                            {category.quantity}
+                          </td>
+                          <td className="py-3 px-4 font-bold text-gray-900 dark:text-white">
+                            {formatPrice(category.revenue)}
+                          </td>
+                          <td className="py-3 px-4 text-gray-600 dark:text-gray-400">
+                            {formatPrice(category.revenue / category.orderCount)}
+                          </td>
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
                 </div>
               </div>
             </div>
@@ -673,7 +818,7 @@ export default function Reports() {
                       <div className="flex-1">
                         <p className="font-medium text-gray-900 dark:text-white">{item.menu_item_name}</p>
                         <p className="text-sm text-gray-600 dark:text-gray-400">
-                          Size: {item.size} • Qty: {item.quantity}
+                          Category: {getCategoryForMenuItem(item.menu_item_name)} • Size: {item.size} • Qty: {item.quantity}
                         </p>
                         {item.extras.length > 0 && (
                           <p className="text-sm text-gray-600 dark:text-gray-400">

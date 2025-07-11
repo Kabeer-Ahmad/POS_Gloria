@@ -35,6 +35,17 @@ interface OrderItem {
   extras_cost: number
 }
 
+interface MenuItem {
+  id: string
+  name: string
+  category: string
+  sizes: string[]
+  prices: Record<string, number>
+  description?: string
+  image_url?: string
+  is_active: boolean
+}
+
 interface SummaryData {
   totalOrders: number
   totalRevenue: number
@@ -46,41 +57,10 @@ interface SummaryData {
   selectedCategories: string[]
 }
 
-const categories = [
-  'Espresso Classics', 
-  'Espresso - Specialties', 
-  'Tea', 
-  'Hot Chocolate',
-  'Chillers - Espresso', 
-  'Chillers - Mocha', 
-  'Chillers - Gourmet Iced', 
-  'Chillers - Fruit',
-  'Smoothies', 
-  'Over Ice', 
-  'Food', 
-  'Deals', 
-  'Extras'
-]
-
-// Category mapping patterns for better filtering
-const categoryPatterns: Record<string, string[]> = {
-  'Espresso Classics': ['latte', 'cappuccino', 'americano', 'espresso', 'macchiato', 'mocha'],
-  'Espresso - Specialties': ['caramel', 'vanilla', 'hazelnut', 'specialty'],
-  'Tea': ['tea', 'chai', 'green tea', 'black tea', 'herbal'],
-  'Hot Chocolate': ['hot chocolate', 'chocolate', 'cocoa'],
-  'Chillers - Espresso': ['iced latte', 'iced cappuccino', 'iced americano', 'cold brew'],
-  'Chillers - Mocha': ['iced mocha', 'frozen mocha', 'chilled mocha'],
-  'Chillers - Gourmet Iced': ['frappuccino', 'iced specialty', 'frozen'],
-  'Chillers - Fruit': ['fruit', 'berry', 'tropical', 'citrus'],
-  'Smoothies': ['smoothie', 'blend', 'fruit blend'],
-  'Over Ice': ['over ice', 'iced'],
-  'Food': ['sandwich', 'cake', 'muffin', 'pastry', 'bagel', 'salad'],
-  'Deals': ['combo', 'deal', 'special offer'],
-  'Extras': ['extra', 'syrup', 'cream', 'whipped']
-}
-
 export default function SummaryExport() {
   const [orders, setOrders] = useState<OrderData[]>([])
+  const [menuItems, setMenuItems] = useState<MenuItem[]>([])
+  const [categories, setCategories] = useState<string[]>([])
   const [isLoading, setIsLoading] = useState(false)
   const [isGenerating, setIsGenerating] = useState(false)
   const [showReport, setShowReport] = useState(false)
@@ -97,13 +77,14 @@ export default function SummaryExport() {
   const [summaryData, setSummaryData] = useState<SummaryData | null>(null)
 
   useEffect(() => {
-    loadOrders()
+    loadData()
   }, [])
 
-  const loadOrders = async () => {
+  const loadData = async () => {
     setIsLoading(true)
     try {
-      const { data: ordersData, error } = await supabase
+      // Load orders with order items
+      const { data: ordersData, error: ordersError } = await supabase
         .from('orders')
         .select(`
           *,
@@ -111,16 +92,33 @@ export default function SummaryExport() {
         `)
         .order('created_at', { ascending: false })
 
-      if (error) {
-        console.error('Error fetching orders:', error)
+      if (ordersError) {
+        console.error('Error fetching orders:', ordersError)
         toast.error('Failed to load orders from database')
         return
       }
 
+      // Load menu items for category mapping
+      const { data: menuItemsData, error: menuError } = await supabase
+        .from('menu_items')
+        .select('*')
+        .eq('is_active', true)
+
+      if (menuError) {
+        console.error('Error fetching menu items:', menuError)
+        toast.error('Failed to load menu items from database')
+        return
+      }
+
       setOrders(ordersData || [])
+      setMenuItems(menuItemsData || [])
+      
+      // Extract unique categories from menu items
+      const uniqueCategories = [...new Set(menuItemsData?.map(item => item.category) || [])]
+      setCategories(uniqueCategories.sort())
     } catch (error) {
-      console.error('Error loading orders:', error)
-      toast.error('Failed to load orders')
+      console.error('Error loading data:', error)
+      toast.error('Failed to load data')
     } finally {
       setIsLoading(false)
     }
@@ -161,10 +159,10 @@ export default function SummaryExport() {
     }
   }
 
-  const matchesCategory = (itemName: string, category: string): boolean => {
-    const patterns = categoryPatterns[category] || []
-    const lowerItemName = itemName.toLowerCase()
-    return patterns.some(pattern => lowerItemName.includes(pattern.toLowerCase()))
+  // Helper function to get category for a menu item
+  const getCategoryForMenuItem = (menuItemName: string): string => {
+    const menuItem = menuItems.find(item => item.name === menuItemName)
+    return menuItem?.category || 'Unknown Category'
   }
 
   const generateSummary = () => {
@@ -201,9 +199,8 @@ export default function SummaryExport() {
         // Check if item matches selected categories (if any)
         let includeItem = true
         if (selectedCategories.length > 0) {
-          includeItem = selectedCategories.some(category => 
-            matchesCategory(item.menu_item_name, category)
-          )
+          const itemCategory = getCategoryForMenuItem(item.menu_item_name)
+          includeItem = selectedCategories.includes(itemCategory)
         }
         
         if (includeItem) {
@@ -247,39 +244,23 @@ export default function SummaryExport() {
       
       filteredOrders.forEach(order => {
         order.order_items?.forEach(item => {
-          selectedCategories.forEach(category => {
-            if (matchesCategory(item.menu_item_name, category)) {
-              categoryBreakdown[category].quantity += item.quantity
-              categoryBreakdown[category].revenue += item.total_price
-            }
-          })
+          const itemCategory = getCategoryForMenuItem(item.menu_item_name)
+          if (selectedCategories.includes(itemCategory)) {
+            categoryBreakdown[itemCategory].quantity += item.quantity
+            categoryBreakdown[itemCategory].revenue += item.total_price
+          }
         })
       })
     } else {
-      // If no specific categories selected, group by detected categories
+      // If no specific categories selected, group by actual categories from database
       filteredOrders.forEach(order => {
         order.order_items?.forEach(item => {
-          let categorized = false
-          for (const [category] of Object.entries(categoryPatterns)) {
-            if (matchesCategory(item.menu_item_name, category)) {
-              if (!categoryBreakdown[category]) {
-                categoryBreakdown[category] = { quantity: 0, revenue: 0 }
-              }
-              categoryBreakdown[category].quantity += item.quantity
-              categoryBreakdown[category].revenue += item.total_price
-              categorized = true
-              break
-            }
+          const itemCategory = getCategoryForMenuItem(item.menu_item_name)
+          if (!categoryBreakdown[itemCategory]) {
+            categoryBreakdown[itemCategory] = { quantity: 0, revenue: 0 }
           }
-          
-          // If item doesn&apos;t match any category, put it in &quot;Other&quot;
-          if (!categorized) {
-            if (!categoryBreakdown['Other']) {
-              categoryBreakdown['Other'] = { quantity: 0, revenue: 0 }
-            }
-            categoryBreakdown['Other'].quantity += item.quantity
-            categoryBreakdown['Other'].revenue += item.total_price
-          }
+          categoryBreakdown[itemCategory].quantity += item.quantity
+          categoryBreakdown[itemCategory].revenue += item.total_price
         })
       })
     }
