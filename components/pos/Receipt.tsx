@@ -77,6 +77,8 @@ export default function Receipt({ order, onClose }: ReceiptProps) {
     receiptText += '     GLORIA JEAN\'S COFFEES     \n'
     receiptText += '        Point of Sale          \n'
     receiptText += '================================\n'
+    receiptText += '        NTN# 0960230-5          \n'
+    receiptText += '--------------------------------\n'
     receiptText += `Order: ${order.orderNumber}\n`
     receiptText += `Date: ${format(new Date(), 'dd/MM/yyyy HH:mm')}\n`
     receiptText += `Staff: ${staff?.role} - ${staff?.email}\n`
@@ -215,6 +217,7 @@ export default function Receipt({ order, onClose }: ReceiptProps) {
           <div className="center">
                           <div className="bold text-lg text-gray-900 dark:text-gray-100">GLORIA JEAN&apos;S COFFEES</div>
             <div className="text-sm text-gray-600 dark:text-gray-400">Point of Sale System</div>
+            <div className="text-xs text-gray-600 dark:text-gray-400 mt-1">NTN# 0960230-5</div>
           </div>
 
           <div className="line border-gray-300 dark:border-gray-600"></div>

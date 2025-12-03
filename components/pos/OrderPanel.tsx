@@ -163,6 +163,7 @@ export default function OrderPanel({ onPaymentComplete }: OrderPanelProps) {
           <div class="header">
             <h1>Gloria Jean's Coffees</h1>
             <p>Point of Sale System</p>
+            <p style="font-size: 0.9em; color: #666; margin-top: 5px;">NTN# 0960230-5</p>
           </div>
           
           <div class="bill-details">
@@ -238,6 +239,8 @@ export default function OrderPanel({ onPaymentComplete }: OrderPanelProps) {
     receiptText += '     GLORIA JEAN\'S COFFEES     \n'
     receiptText += '        Point of Sale          \n'
     receiptText += '================================\n'
+    receiptText += '        NTN# 0960230-5          \n'
+    receiptText += '--------------------------------\n'
     receiptText += `Table: ${selectedTable}\n`
     receiptText += `Order: ${currentOrder.orderNumber}\n`
     receiptText += `Date: ${new Date().toLocaleDateString()}\n`

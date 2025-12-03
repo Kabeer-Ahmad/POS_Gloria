@@ -261,6 +261,7 @@ export default function OrderHistory({ onClose }: OrderHistoryProps) {
           <div class="header">
             <h1>Gloria Jean&#39;s Coffees</h1>
             <p>Point of Sale System</p>
+            <p style="font-size: 0.9em; color: #666; margin-top: 5px;">NTN# 0960230-5</p>
             <p class="reprint-notice">REPRINT - Original: ${formatDate(order.completedAt)}</p>
           </div>
           
