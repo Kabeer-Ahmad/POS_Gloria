@@ -135,7 +135,7 @@ export default function AdminDashboard() {
     'Espresso Classics', 'Espresso - Specialties', 'Tea', 'Hot Chocolate',
     'Chillers - Espresso', 'Chillers - Mocha', 'Chillers - Gourmet Iced', 'Chillers - Fruit',
     'Smoothies', 'Over Ice', 'House Signatures', 'Pasta Station', 'Gloria Crave Combo', 'Snacks',
-    'Warm & Gooey', 'Gloria &apos;s Signature Cakes', 'Beverages', 'Food', 'Extras', 'Meals', 'Breakfast'
+    'Warm & Gooey', 'Gloria Signature Cakes', 'Beverages', 'Food', 'Extras', 'Meals', 'Breakfast'
   ]
 
   const handleAddItem = async () => {
