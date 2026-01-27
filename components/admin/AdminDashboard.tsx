@@ -135,7 +135,7 @@ export default function AdminDashboard() {
     'Espresso Classics', 'Espresso - Specialties', 'Tea', 'Hot Chocolate',
     'Chillers - Espresso', 'Chillers - Mocha', 'Chillers - Gourmet Iced', 'Chillers - Fruit',
     'Smoothies', 'Over Ice', 'House Signatures', 'Pasta Station', 'Gloria Crave Combo', 'Snacks',
-    'Warm & Gooey', 'Gloria Signature Cakes', 'Beverages', 'Food', 'Extras', 'Meals', 'Breakfast'
+    'Warm & Gooey', 'Gloria&apos;s Signature Cakes', 'Beverages', 'Food', 'Extras', 'Meals', 'Breakfast'
   ]
 
   const handleAddItem = async () => {
@@ -277,8 +277,8 @@ export default function AdminDashboard() {
                     key={key}
                     onClick={() => setActiveTab(key as 'overview' | 'orders' | 'menu' | 'summary')}
                     className={`flex items-center gap-1 px-3 py-1.5 rounded-md text-sm font-medium transition-colors ${activeTab === key
-                        ? 'bg-white dark:bg-gray-600 text-gray-900 dark:text-white shadow-sm'
-                        : 'text-gray-600 dark:text-gray-300 hover:text-gray-900 dark:hover:text-white'
+                      ? 'bg-white dark:bg-gray-600 text-gray-900 dark:text-white shadow-sm'
+                      : 'text-gray-600 dark:text-gray-300 hover:text-gray-900 dark:hover:text-white'
                       }`}
                   >
                     <Icon className="h-3 w-3" />
@@ -506,8 +506,8 @@ export default function AdminDashboard() {
                     <button
                       onClick={() => handleToggleAvailability(item.id)}
                       className={`flex-1 px-3 py-2 text-sm rounded-lg transition-colors font-medium ${item.is_active
-                          ? 'bg-red-100 dark:bg-red-900 text-red-700 dark:text-red-300 hover:bg-red-200 dark:hover:bg-red-800'
-                          : 'bg-green-100 dark:bg-green-900 text-green-700 dark:text-green-300 hover:bg-green-200 dark:hover:bg-green-800'
+                        ? 'bg-red-100 dark:bg-red-900 text-red-700 dark:text-red-300 hover:bg-red-200 dark:hover:bg-red-800'
+                        : 'bg-green-100 dark:bg-green-900 text-green-700 dark:text-green-300 hover:bg-green-200 dark:hover:bg-green-800'
                         }`}
                     >
                       {item.is_active ? 'Disable' : 'Enable'}
