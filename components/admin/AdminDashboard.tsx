@@ -1,8 +1,8 @@
 'use client'
 
 import { useState, useEffect } from 'react'
-import { 
-  BarChart, DollarSign, ShoppingCart, TrendingUp, 
+import {
+  BarChart, DollarSign, ShoppingCart, TrendingUp,
   ArrowLeft, Clock, Package, Plus, Edit, Trash2, X
 } from 'lucide-react'
 import { usePosStore } from '@/lib/store'
@@ -124,7 +124,7 @@ export default function AdminDashboard() {
   const todayOrdersCount = todayOrders.length
   const totalRevenue = orders.reduce((sum, order) => sum + order.total, 0)
   const todayRevenue = todayOrders.reduce((sum, order) => sum + order.total, 0)
-  
+
   const cashOrders = orders.filter(o => o.payment_method === 'cash').length
   const cardOrders = orders.filter(o => o.payment_method === 'card').length
 
@@ -134,7 +134,8 @@ export default function AdminDashboard() {
   const categories = [
     'Espresso Classics', 'Espresso - Specialties', 'Tea', 'Hot Chocolate',
     'Chillers - Espresso', 'Chillers - Mocha', 'Chillers - Gourmet Iced', 'Chillers - Fruit',
-    'Smoothies', 'Over Ice', 'Food', 'Deals', 'Extras'
+    'Smoothies', 'Over Ice', 'House Signatures', 'Pasta Station', 'Gloria Crave Combo', 'Snacks',
+    'Warm & Gooey', 'Gloria Signature Cakes', 'Beverages', 'Food', 'Extras', 'Meals', 'Breakfast'
   ]
 
   const handleAddItem = async () => {
@@ -252,7 +253,7 @@ export default function AdminDashboard() {
                 Welcome, {staff?.email}
               </span>
             </div>
-            
+
             <div className="flex items-center gap-2">
               {/* Mobile: Dropdown for tabs */}
               <div className="sm:hidden">
@@ -275,18 +276,17 @@ export default function AdminDashboard() {
                   <button
                     key={key}
                     onClick={() => setActiveTab(key as 'overview' | 'orders' | 'menu' | 'summary')}
-                    className={`flex items-center gap-1 px-3 py-1.5 rounded-md text-sm font-medium transition-colors ${
-                      activeTab === key
+                    className={`flex items-center gap-1 px-3 py-1.5 rounded-md text-sm font-medium transition-colors ${activeTab === key
                         ? 'bg-white dark:bg-gray-600 text-gray-900 dark:text-white shadow-sm'
                         : 'text-gray-600 dark:text-gray-300 hover:text-gray-900 dark:hover:text-white'
-                    }`}
+                      }`}
                   >
                     <Icon className="h-3 w-3" />
                     <span className="hidden md:inline">{label}</span>
                   </button>
                 ))}
               </div>
-              
+
               <button
                 onClick={() => window.location.reload()}
                 className="flex items-center gap-1 px-3 py-1.5 text-sm bg-amber-600 text-white rounded-md hover:bg-amber-700 transition-colors"
@@ -416,7 +416,7 @@ export default function AdminDashboard() {
                   Refresh
                 </button>
               </div>
-              
+
               {isLoading ? (
                 <div className="text-center py-8">
                   <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-amber-600 mx-auto"></div>
@@ -493,12 +493,10 @@ export default function AdminDashboard() {
                       </p>
                     </div>
                     <div className="flex items-center gap-2">
-                      <div className={`w-3 h-3 rounded-full ${
-                        item.is_active ? 'bg-green-500' : 'bg-red-500'
-                      }`}></div>
-                      <span className={`text-sm font-medium ${
-                        item.is_active ? 'text-green-600 dark:text-green-400' : 'text-red-600 dark:text-red-400'
-                      }`}>
+                      <div className={`w-3 h-3 rounded-full ${item.is_active ? 'bg-green-500' : 'bg-red-500'
+                        }`}></div>
+                      <span className={`text-sm font-medium ${item.is_active ? 'text-green-600 dark:text-green-400' : 'text-red-600 dark:text-red-400'
+                        }`}>
                         {item.is_active ? 'Available' : 'Unavailable'}
                       </span>
                     </div>
@@ -507,11 +505,10 @@ export default function AdminDashboard() {
                   <div className="flex items-center gap-2">
                     <button
                       onClick={() => handleToggleAvailability(item.id)}
-                      className={`flex-1 px-3 py-2 text-sm rounded-lg transition-colors font-medium ${
-                        item.is_active
+                      className={`flex-1 px-3 py-2 text-sm rounded-lg transition-colors font-medium ${item.is_active
                           ? 'bg-red-100 dark:bg-red-900 text-red-700 dark:text-red-300 hover:bg-red-200 dark:hover:bg-red-800'
                           : 'bg-green-100 dark:bg-green-900 text-green-700 dark:text-green-300 hover:bg-green-200 dark:hover:bg-green-800'
-                      }`}
+                        }`}
                     >
                       {item.is_active ? 'Disable' : 'Enable'}
                     </button>
@@ -598,7 +595,7 @@ export default function AdminDashboard() {
                           const updatedSizes = [...newSizes]
                           updatedSizes[index] = e.target.value
                           setNewSizes(updatedSizes)
-                          
+
                           // Update prices object
                           const updatedPrices = { ...newPrices }
                           if (e.target.value !== size) {
@@ -624,7 +621,7 @@ export default function AdminDashboard() {
                           onClick={() => {
                             const updatedSizes = newSizes.filter((_, i) => i !== index)
                             setNewSizes(updatedSizes)
-                            
+
                             const updatedPrices = { ...newPrices }
                             delete updatedPrices[size]
                             setNewPrices(updatedPrices)
@@ -764,7 +761,7 @@ export default function AdminDashboard() {
                           const updatedSizes = [...editingSizes]
                           updatedSizes[index] = e.target.value
                           setEditingSizes(updatedSizes)
-                          
+
                           // Update prices object
                           const updatedPrices = { ...editingPrices }
                           if (e.target.value !== size) {
@@ -790,7 +787,7 @@ export default function AdminDashboard() {
                           onClick={() => {
                             const updatedSizes = editingSizes.filter((_, i) => i !== index)
                             setEditingSizes(updatedSizes)
-                            
+
                             const updatedPrices = { ...editingPrices }
                             delete updatedPrices[size]
                             setEditingPrices(updatedPrices)
